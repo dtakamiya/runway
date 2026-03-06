@@ -6,6 +6,7 @@ const defaultData = {
   startDate: "2026-03-10",
   sprintDays: "14",
   bufferPercent: "20",
+  deadline: "",
 }
 
 describe("ForecastForm", () => {
@@ -13,7 +14,6 @@ describe("ForecastForm", () => {
     render(<ForecastForm data={defaultData} onChange={() => {}} />)
     const hint = screen.getByText(/vel -20%/)
     expect(hint).toBeInTheDocument()
-    // 長い説明文が使われていないことを確認
     expect(screen.queryByText(/低下し、総ポイントが/)).not.toBeInTheDocument()
   })
 
@@ -21,5 +21,10 @@ describe("ForecastForm", () => {
     const data = { ...defaultData, bufferPercent: "0" }
     render(<ForecastForm data={data} onChange={() => {}} />)
     expect(screen.queryByText(/vel/)).not.toBeInTheDocument()
+  })
+
+  it("デッドラインの入力フィールドが存在する", () => {
+    render(<ForecastForm data={defaultData} onChange={() => {}} />)
+    expect(screen.getByLabelText("デッドライン (任意)")).toBeInTheDocument()
   })
 })

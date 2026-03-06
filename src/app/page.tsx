@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
 import { parseISO } from "date-fns"
 import { ForecastForm, type FormData } from "@/components/forecast-form"
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Plane } from "lucide-react"
 import { calculateForecast } from "@/lib/forecast"
+import { saveState, loadState } from "@/lib/storage"
 import type { ForecastInput, ForecastResult, VelocityPhase } from "@/lib/types"
 
 const BurndownChart = dynamic(
@@ -34,6 +35,7 @@ const initialFormData: FormData = {
   startDate: "2026-03-10",
   sprintDays: "14",
   bufferPercent: "20",
+  deadline: "",
 }
 
 const initialPhases: readonly PhaseFormData[] = [
@@ -51,6 +53,24 @@ export default function Home() {
   const [result, setResult] = useState<ForecastResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState(false)
+  const [restoredFromStorage, setRestoredFromStorage] = useState(false)
+
+  // 初回マウント時にlocalStorageから状態を復元
+  useEffect(() => {
+    const saved = loadState()
+    if (saved) {
+      setFormData({ ...initialFormData, ...saved.formData })
+      if (saved.phases.length > 0) {
+        setPhases(saved.phases)
+      }
+      setRestoredFromStorage(true)
+    }
+  }, [])
+
+  // 状態が変わるたびにlocalStorageに保存
+  useEffect(() => {
+    saveState({ formData, phases: phases as PhaseFormData[] })
+  }, [formData, phases])
 
   const handleFormChange = (data: FormData) => {
     setFormData(data)
@@ -136,6 +156,23 @@ export default function Home() {
 
         <Separator />
 
+        {restoredFromStorage && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+            <span>前回の入力内容を復元しました</span>
+            <button
+              className="ml-auto text-xs underline hover:text-foreground"
+              onClick={() => {
+                setFormData(initialFormData)
+                setPhases(initialPhases)
+                setResult(null)
+                setRestoredFromStorage(false)
+              }}
+            >
+              リセット
+            </button>
+          </div>
+        )}
+
         <ForecastForm data={formData} onChange={handleFormChange} />
         <VelocityPhases phases={phases} onChange={handlePhasesChange} />
 
@@ -172,7 +209,10 @@ export default function Home() {
         {result && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Separator />
-            <ForecastResultCards result={result} />
+            <ForecastResultCards
+              result={result}
+              deadline={formData.deadline || undefined}
+            />
             <BurndownChart result={result} velocityPhases={velocityPhases} />
             <SprintTable result={result} />
           </div>

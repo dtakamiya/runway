@@ -16,6 +16,7 @@ export type FormData = {
   readonly startDate: string
   readonly sprintDays: string
   readonly bufferPercent: string
+  readonly deadline: string
 }
 
 type ForecastFormProps = {
@@ -92,6 +93,21 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
               </p>
             )}
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="deadline">デッドライン (任意)</Label>
+          <Input
+            id="deadline"
+            type="date"
+            value={data.deadline}
+            onChange={(e) => update("deadline", e.target.value)}
+          />
+          {data.deadline && (
+            <p className="text-xs text-muted-foreground">
+              各シナリオがこの日付に間に合うか判定します
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

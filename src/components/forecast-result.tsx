@@ -3,11 +3,35 @@
 import { TrendingUp, Minus, TrendingDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { format, parseISO, differenceInDays } from "date-fns"
 import type { ForecastResult } from "@/lib/types"
 
 type ForecastResultCardsProps = {
   readonly result: ForecastResult
+  readonly deadline?: string
+}
+
+function DeadlineBadge({
+  endDate,
+  deadline,
+}: {
+  endDate: Date
+  deadline: string
+}) {
+  const deadlineDate = parseISO(deadline)
+  const diff = differenceInDays(endDate, deadlineDate)
+  if (diff <= 0) {
+    return (
+      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+        間に合う
+      </Badge>
+    )
+  }
+  return (
+    <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 text-xs">
+      {diff}日超過
+    </Badge>
+  )
 }
 
 const scenarioConfig = [
@@ -41,7 +65,10 @@ const scenarioConfig = [
   },
 ] as const
 
-export function ForecastResultCards({ result }: ForecastResultCardsProps) {
+export function ForecastResultCards({
+  result,
+  deadline,
+}: ForecastResultCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
       {scenarioConfig.map((config) => {
@@ -72,13 +99,16 @@ export function ForecastResultCards({ result }: ForecastResultCardsProps) {
               <p className="text-2xl font-bold">
                 {format(scenario.endDate, "yyyy/MM/dd")}
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className={config.badge}>
                   {scenario.sprintCount} スプリント
                 </Badge>
                 <Badge variant="secondary" className={config.badge}>
                   {scenario.totalPoints} pts
                 </Badge>
+                {deadline && (
+                  <DeadlineBadge endDate={scenario.endDate} deadline={deadline} />
+                )}
               </div>
             </CardContent>
           </Card>

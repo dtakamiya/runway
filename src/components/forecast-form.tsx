@@ -88,7 +88,7 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
             />
             {Number(data.bufferPercent) > 0 && (
               <p className="text-xs text-muted-foreground">
-                悲観シナリオ：ベロシティが {data.bufferPercent}% 低下し、総ポイントが {data.bufferPercent}% 増加して計算されます
+                悲観：vel -{data.bufferPercent}% / pt +{data.bufferPercent}%
               </p>
             )}
           </div>

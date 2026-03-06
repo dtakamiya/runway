@@ -56,55 +56,68 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {phases.map((phase, index) => (
-          <div
-            key={phase.id}
-            className="grid grid-cols-[1fr_80px_1fr_auto] gap-2 items-end"
-          >
-            <div>
-              <Label className="text-xs">
-                {index === 0 ? "開始日" : "変更日"}
-              </Label>
-              <Input
-                type="date"
-                value={phase.fromDate}
-                onChange={(e) =>
-                  updatePhase(phase.id, "fromDate", e.target.value)
-                }
-              />
+          <div key={phase.id} className="space-y-2">
+            <div className="grid grid-cols-2 md:grid-cols-[1fr_80px_1fr_auto] gap-2 items-end">
+              <div>
+                <Label className="text-xs">
+                  {index === 0 ? "開始日" : "変更日"}
+                </Label>
+                <Input
+                  type="date"
+                  value={phase.fromDate}
+                  onChange={(e) =>
+                    updatePhase(phase.id, "fromDate", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">ベロシティ</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="15"
+                  value={phase.velocity}
+                  onChange={(e) =>
+                    updatePhase(phase.id, "velocity", e.target.value)
+                  }
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1">
+                <Label className="text-xs">メモ</Label>
+                <Input
+                  placeholder="例: 3人チーム"
+                  value={phase.label}
+                  onChange={(e) =>
+                    updatePhase(phase.id, "label", e.target.value)
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removePhase(phase.id)}
+                disabled={phases.length <= 1}
+                className="hidden md:flex mb-0.5 hover:text-destructive"
+                aria-label="フェーズを削除"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
-            <div>
-              <Label className="text-xs">ベロシティ</Label>
-              <Input
-                type="number"
-                min="1"
-                placeholder="15"
-                value={phase.velocity}
-                onChange={(e) =>
-                  updatePhase(phase.id, "velocity", e.target.value)
-                }
-              />
+            <div className="flex justify-end md:hidden">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removePhase(phase.id)}
+                disabled={phases.length <= 1}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                aria-label="フェーズを削除"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                削除
+              </Button>
             </div>
-            <div>
-              <Label className="text-xs">メモ</Label>
-              <Input
-                placeholder="例: 3人チーム"
-                value={phase.label}
-                onChange={(e) =>
-                  updatePhase(phase.id, "label", e.target.value)
-                }
-              />
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => removePhase(phase.id)}
-              disabled={phases.length <= 1}
-              className="mb-0.5"
-              aria-label="フェーズを削除"
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
           </div>
         ))}
         {phases.length === 0 && (

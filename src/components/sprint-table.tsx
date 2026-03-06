@@ -63,13 +63,13 @@ export function SprintTable({ result }: SprintTableProps) {
         <Tabs defaultValue="standard">
           <TabsList>
             <TabsTrigger value="optimistic">
-              楽観 ({result.optimistic.sprintCount} Sprint)
+              楽観 ({result.optimistic.sprintCount} スプリント)
             </TabsTrigger>
             <TabsTrigger value="standard">
-              標準 ({result.standard.sprintCount} Sprint)
+              標準 ({result.standard.sprintCount} スプリント)
             </TabsTrigger>
             <TabsTrigger value="pessimistic">
-              悲観 ({result.pessimistic.sprintCount} Sprint)
+              悲観 ({result.pessimistic.sprintCount} スプリント)
             </TabsTrigger>
           </TabsList>
           <TabsContent value="optimistic">

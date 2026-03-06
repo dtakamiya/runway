@@ -12,6 +12,7 @@ import { ForecastResultCards } from "@/components/forecast-result"
 import { SprintTable } from "@/components/sprint-table"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Plane } from "lucide-react"
 import { calculateForecast } from "@/lib/forecast"
 import type { ForecastInput, ForecastResult, VelocityPhase } from "@/lib/types"
 
@@ -118,11 +119,19 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Runway</h1>
-          <p className="text-sm text-muted-foreground">
-            ベロシティフェーズによるスプリント完了予測
-          </p>
+        <div className="flex items-center gap-3">
+          <div
+            data-testid="brand-logo"
+            className="bg-primary text-primary-foreground rounded-lg p-2 flex items-center justify-center"
+          >
+            <Plane className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Runway</h1>
+            <p className="text-sm text-muted-foreground">
+              スプリント完了予測ツール
+            </p>
+          </div>
         </div>
 
         <Separator />
@@ -140,12 +149,28 @@ export default function Home() {
           </p>
         )}
 
-        <Button onClick={handleCalculate} className="w-full" size="lg">
+        <Button
+          onClick={handleCalculate}
+          className={`w-full transition-all ${
+            isDirty ? "animate-pulse ring-2 ring-offset-2 ring-primary" : ""
+          }`}
+          size="lg"
+        >
           予測を計算
         </Button>
 
+        {!result && (
+          <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center text-muted-foreground">
+            <p className="text-sm leading-relaxed">
+              「予測を計算」を押すと
+              <br />
+              完了予測日・バーンダウンチャートが表示されます
+            </p>
+          </div>
+        )}
+
         {result && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Separator />
             <ForecastResultCards result={result} />
             <BurndownChart result={result} velocityPhases={velocityPhases} />

@@ -108,7 +108,18 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="label" fontSize={12} />
-              <YAxis fontSize={12} />
+              <YAxis
+                fontSize={12}
+                label={{
+                  value: "残り pt",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 10,
+                  fontSize: 11,
+                  fill: "currentColor",
+                }}
+                width={55}
+              />
               <Tooltip
                 contentStyle={{
                   borderRadius: "8px",

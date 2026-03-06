@@ -41,7 +41,7 @@ function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
 
   const data: ChartDataPoint[] = [
     {
-      label: "Start",
+      label: "開始",
       optimistic: result.optimistic.totalPoints,
       standard: totalPoints,
       pessimistic: result.pessimistic.totalPoints,
@@ -97,7 +97,7 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Burndown Chart</CardTitle>
+        <CardTitle className="text-base">バーンダウンチャート</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[350px] w-full">
@@ -135,7 +135,7 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
               <Area
                 type="monotone"
                 dataKey="pessimistic"
-                name="Pessimistic"
+                name="悲観"
                 stroke="#f97316"
                 fill="#fed7aa"
                 fillOpacity={0.3}
@@ -144,7 +144,7 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
               <Area
                 type="monotone"
                 dataKey="standard"
-                name="Standard"
+                name="標準"
                 stroke="#3b82f6"
                 fill="#bfdbfe"
                 fillOpacity={0.3}
@@ -153,7 +153,7 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
               <Area
                 type="monotone"
                 dataKey="optimistic"
-                name="Optimistic"
+                name="楽観"
                 stroke="#22c55e"
                 fill="#bbf7d0"
                 fillOpacity={0.3}

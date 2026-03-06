@@ -31,12 +31,12 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Basic Settings</CardTitle>
+        <CardTitle className="text-base">基本設定</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="totalPoints">Total Story Points</Label>
+            <Label htmlFor="totalPoints">ストーリーポイント合計</Label>
             <Input
               id="totalPoints"
               type="number"
@@ -47,7 +47,7 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="startDate">Start Date</Label>
+            <Label htmlFor="startDate">開始日</Label>
             <Input
               id="startDate"
               type="date"
@@ -59,7 +59,7 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Sprint Interval</Label>
+            <Label>スプリント期間</Label>
             <Select
               value={data.sprintDays}
               onValueChange={(value) => update("sprintDays", value)}
@@ -68,15 +68,15 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">1 week</SelectItem>
-                <SelectItem value="14">2 weeks</SelectItem>
-                <SelectItem value="21">3 weeks</SelectItem>
-                <SelectItem value="28">4 weeks</SelectItem>
+                <SelectItem value="7">1週間</SelectItem>
+                <SelectItem value="14">2週間</SelectItem>
+                <SelectItem value="21">3週間</SelectItem>
+                <SelectItem value="28">4週間</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="buffer">Uncertainty Buffer (%)</Label>
+            <Label htmlFor="buffer">不確実性バッファー (%)</Label>
             <Input
               id="buffer"
               type="number"

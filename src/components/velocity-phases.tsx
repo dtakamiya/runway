@@ -47,10 +47,10 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center justify-between">
-          Velocity Phases
+          ベロシティフェーズ
           <Button type="button" variant="outline" size="sm" onClick={addPhase}>
             <Plus className="h-4 w-4 mr-1" />
-            Add Phase
+            フェーズを追加
           </Button>
         </CardTitle>
       </CardHeader>
@@ -62,7 +62,7 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
           >
             <div>
               <Label className="text-xs">
-                {index === 0 ? "Start Date" : "Change Date"}
+                {index === 0 ? "開始日" : "変更日"}
               </Label>
               <Input
                 type="date"
@@ -73,7 +73,7 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
               />
             </div>
             <div>
-              <Label className="text-xs">Velocity</Label>
+              <Label className="text-xs">ベロシティ</Label>
               <Input
                 type="number"
                 min="1"
@@ -85,9 +85,9 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
               />
             </div>
             <div>
-              <Label className="text-xs">Memo</Label>
+              <Label className="text-xs">メモ</Label>
               <Input
-                placeholder="e.g. 3-person team"
+                placeholder="例: 3人チーム"
                 value={phase.label}
                 onChange={(e) =>
                   updatePhase(phase.id, "label", e.target.value)
@@ -108,7 +108,7 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
         ))}
         {phases.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Add at least one velocity phase to begin forecasting.
+            予測を開始するには少なくとも1つのベロシティフェーズを追加してください。
           </p>
         )}
       </CardContent>

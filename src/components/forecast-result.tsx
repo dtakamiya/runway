@@ -12,21 +12,21 @@ type ForecastResultCardsProps = {
 const scenarioConfig = [
   {
     key: "optimistic" as const,
-    title: "Optimistic",
+    title: "楽観",
     color: "text-green-600",
     bg: "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950",
     badge: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   },
   {
     key: "standard" as const,
-    title: "Standard",
+    title: "標準",
     color: "text-blue-600",
     bg: "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950",
     badge: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   },
   {
     key: "pessimistic" as const,
-    title: "Pessimistic",
+    title: "悲観",
     color: "text-orange-600",
     bg: "border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950",
     badge:
@@ -52,7 +52,7 @@ export function ForecastResultCards({ result }: ForecastResultCardsProps) {
               </p>
               <div className="flex gap-2">
                 <Badge variant="secondary" className={config.badge}>
-                  {scenario.sprintCount} sprints
+                  {scenario.sprintCount} スプリント
                 </Badge>
                 <Badge variant="secondary" className={config.badge}>
                   {scenario.totalPoints} pts

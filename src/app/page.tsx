@@ -40,7 +40,7 @@ const initialPhases: readonly PhaseFormData[] = [
     id: crypto.randomUUID(),
     fromDate: "2026-03-10",
     velocity: "15",
-    label: "3-person team",
+    label: "3人チーム",
   },
 ]
 
@@ -68,19 +68,19 @@ export default function Home() {
     const bufferPercent = Number(formData.bufferPercent)
 
     if (!totalPoints || totalPoints <= 0) {
-      setError("Total Story Points must be a positive number.")
+      setError("ストーリーポイントの合計は正の数である必要があります。")
       return
     }
     if (!formData.startDate) {
-      setError("Start Date is required.")
+      setError("開始日は必須です。")
       return
     }
     if (velocityPhases.length === 0) {
-      setError("At least one velocity phase is required.")
+      setError("少なくとも1つのベロシティフェーズが必要です。")
       return
     }
     if (velocityPhases.some((p) => p.velocity <= 0)) {
-      setError("All velocity values must be positive.")
+      setError("すべてのベロシティは正の数である必要があります。")
       return
     }
 
@@ -101,7 +101,7 @@ export default function Home() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Runway</h1>
           <p className="text-sm text-muted-foreground">
-            Sprint completion forecast with velocity phases
+            ベロシティフェーズによるスプリント完了予測
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export default function Home() {
         )}
 
         <Button onClick={handleCalculate} className="w-full" size="lg">
-          Calculate Forecast
+          予測を計算
         </Button>
 
         {result && (

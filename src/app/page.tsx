@@ -15,6 +15,9 @@ import { Separator } from "@/components/ui/separator"
 import { Plane } from "lucide-react"
 import { calculateForecast } from "@/lib/forecast"
 import { saveState, loadState } from "@/lib/storage"
+import { encodeState, decodeState } from "@/lib/share"
+import { VelocityHistory } from "@/components/velocity-history"
+import { Link, ChevronDown, ChevronUp } from "lucide-react"
 import type { ForecastInput, ForecastResult, VelocityPhase } from "@/lib/types"
 
 const BurndownChart = dynamic(
@@ -54,15 +57,26 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState(false)
   const [restoredFromStorage, setRestoredFromStorage] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
+  const [showVelocityHistory, setShowVelocityHistory] = useState(false)
 
-  // 初回マウント時にlocalStorageから状態を復元
+  // 初回マウント時: URLパラメータ優先、次にlocalStorage
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const encoded = params.get("s")
+    if (encoded) {
+      const decoded = decodeState(encoded)
+      if (decoded) {
+        setFormData({ ...initialFormData, ...decoded.formData })
+        if (decoded.phases.length > 0) setPhases(decoded.phases)
+        setRestoredFromStorage(true)
+        return
+      }
+    }
     const saved = loadState()
     if (saved) {
       setFormData({ ...initialFormData, ...saved.formData })
-      if (saved.phases.length > 0) {
-        setPhases(saved.phases)
-      }
+      if (saved.phases.length > 0) setPhases(saved.phases)
       setRestoredFromStorage(true)
     }
   }, [])
@@ -71,6 +85,25 @@ export default function Home() {
   useEffect(() => {
     saveState({ formData, phases: phases as PhaseFormData[] })
   }, [formData, phases])
+
+  const handleShare = async () => {
+    const encoded = encodeState({
+      formData,
+      phases: phases as PhaseFormData[],
+    })
+    const url = `${window.location.origin}${window.location.pathname}?s=${encoded}`
+    await navigator.clipboard.writeText(url)
+    setCopySuccess(true)
+    setTimeout(() => setCopySuccess(false), 2000)
+  }
+
+  const handleVelocityHistoryApply = (average: number) => {
+    if (phases.length === 0) return
+    const updated = phases.map((p, i) =>
+      i === 0 ? { ...p, velocity: String(average) } : p
+    )
+    handlePhasesChange(updated)
+  }
 
   const handleFormChange = (data: FormData) => {
     setFormData(data)
@@ -146,12 +179,21 @@ export default function Home() {
           >
             <Plane className="h-5 w-5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold tracking-tight">Runway</h1>
             <p className="text-sm text-muted-foreground">
               スプリント完了予測ツール
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            className="gap-1.5"
+          >
+            <Link className="h-4 w-4" />
+            {copySuccess ? "コピーしました！" : "URLをコピー"}
+          </Button>
         </div>
 
         <Separator />
@@ -175,6 +217,29 @@ export default function Home() {
 
         <ForecastForm data={formData} onChange={handleFormChange} />
         <VelocityPhases phases={phases} onChange={handlePhasesChange} />
+
+        <div className="border rounded-lg overflow-hidden">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors"
+            onClick={() => setShowVelocityHistory((v) => !v)}
+          >
+            <span>過去のベロシティから計算</span>
+            {showVelocityHistory ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+          {showVelocityHistory && (
+            <div className="px-4 py-3">
+              <p className="text-xs text-muted-foreground mb-2">
+                過去スプリントのベロシティを入力すると平均値を計算し、第1フェーズに適用できます。
+              </p>
+              <VelocityHistory onApply={handleVelocityHistoryApply} />
+            </div>
+          )}
+        </div>
 
         {error && (
           <p className="text-sm text-destructive font-medium">{error}</p>

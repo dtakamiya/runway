@@ -22,6 +22,7 @@ type BurndownChartProps = {
 
 type ChartDataPoint = {
   readonly label: string
+  readonly sprintNum: string
   readonly optimistic: number
   readonly standard: number
   readonly pessimistic: number
@@ -39,9 +40,13 @@ function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
       result.standard.sprints[0].pointsBurned
     : 0
 
+  const startDate = result.standard.sprints[0]?.startDate
+  const startLabel = startDate ? format(startDate, "M/d") : "開始"
+
   const data: ChartDataPoint[] = [
     {
-      label: "開始",
+      label: startLabel,
+      sprintNum: "開始",
       optimistic: result.optimistic.totalPoints,
       standard: totalPoints,
       pessimistic: result.pessimistic.totalPoints,
@@ -53,8 +58,13 @@ function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
     const stdSprint = result.standard.sprints[i]
     const pesSprint = result.pessimistic.sprints[i]
 
+    // X軸ラベルは標準シナリオの日付を優先、なければ悲観シナリオの日付
+    const sprint = stdSprint ?? pesSprint
+    const dateLabel = sprint ? format(sprint.endDate, "M/d") : `S${i + 1}`
+
     data.push({
-      label: `S${i + 1}`,
+      label: dateLabel,
+      sprintNum: `S${i + 1}`,
       optimistic: optSprint?.remainingPoints ?? 0,
       standard: stdSprint?.remainingPoints ?? 0,
       pessimistic: pesSprint?.remainingPoints ?? 0,
@@ -94,6 +104,18 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
   const data = buildChartData(result)
   const phaseMarkers = findPhaseChangeSprintIndices(result, velocityPhases)
 
+  // 今日のマーカー位置を特定
+  const today = new Date()
+  const todayLabel = (() => {
+    for (let i = 0; i < result.standard.sprints.length; i++) {
+      const sprint = result.standard.sprints[i]
+      if (today >= sprint.startDate && today < sprint.endDate) {
+        return data[i + 1]?.label
+      }
+    }
+    return null
+  })()
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -104,10 +126,17 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="label" fontSize={12} />
+              <XAxis
+                dataKey="label"
+                fontSize={11}
+                angle={-35}
+                textAnchor="end"
+                height={50}
+                tick={{ fontSize: 11 }}
+              />
               <YAxis
                 fontSize={12}
                 label={{
@@ -125,13 +154,31 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
                   borderRadius: "8px",
                   fontSize: "12px",
                 }}
+                labelFormatter={(label, payload) => {
+                  const sprintNum = (payload?.[0]?.payload as ChartDataPoint)?.sprintNum
+                  return sprintNum ? `${sprintNum} (${label})` : label
+                }}
               />
               <Legend />
+
+              {todayLabel && (
+                <ReferenceLine
+                  x={todayLabel}
+                  stroke="#64748b"
+                  strokeDasharray="6 3"
+                  label={{
+                    value: "今日",
+                    position: "top",
+                    fontSize: 11,
+                    fill: "#64748b",
+                  }}
+                />
+              )}
 
               {phaseMarkers.map((marker) => (
                 <ReferenceLine
                   key={marker.index}
-                  x={`S${marker.index}`}
+                  x={data[marker.index]?.label ?? `S${marker.index}`}
                   stroke="#8b5cf6"
                   strokeDasharray="4 4"
                   label={{

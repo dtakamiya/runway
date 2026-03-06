@@ -4,8 +4,8 @@ import type { ForecastResult } from "@/lib/types"
 
 const mockSprint = {
   sprintNumber: 1,
-  startDate: new Date("2026-03-10"),
-  endDate: new Date("2026-03-24"),
+  startDate: new Date("2026-12-20"),
+  endDate: new Date("2027-01-03"), // 年またぎ
   velocity: 15,
   pointsBurned: 15,
   remainingPoints: 85,
@@ -25,5 +25,12 @@ describe("SprintTable", () => {
       expect(tab.textContent).not.toMatch(/\bSprint\b/)
       expect(tab.textContent).toMatch(/スプリント/)
     })
+  })
+
+  it("年またぎのスプリント日付に年が表示される", () => {
+    render(<SprintTable result={mockResult} />)
+    // 2026/12/20 - 2027/01/03 の形式で年が表示されること
+    expect(screen.getByText(/2026\/12\/20/)).toBeInTheDocument()
+    expect(screen.getByText(/2027\/01\/03/)).toBeInTheDocument()
   })
 })

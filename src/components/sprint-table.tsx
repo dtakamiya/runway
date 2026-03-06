@@ -10,16 +10,36 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Download } from "lucide-react"
 import { format } from "date-fns"
+import { toCsv, downloadCsv } from "@/lib/export"
 import type { ForecastResult, Scenario } from "@/lib/types"
 
 type SprintTableProps = {
   readonly result: ForecastResult
 }
 
-function ScenarioTable({ scenario }: { readonly scenario: Scenario }) {
+function ScenarioTable({
+  scenario,
+  label,
+}: {
+  readonly scenario: Scenario
+  readonly label: string
+}) {
+  const handleExport = () => {
+    const csv = toCsv(scenario)
+    downloadCsv(csv, `runway-${label}-${format(new Date(), "yyyyMMdd")}.csv`)
+  }
   return (
-    <div className="overflow-x-auto">
+    <div className="space-y-2">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
+          <Download className="h-3.5 w-3.5" />
+          CSVエクスポート
+        </Button>
+      </div>
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -37,8 +57,8 @@ function ScenarioTable({ scenario }: { readonly scenario: Scenario }) {
                 S{sprint.sprintNumber}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {format(sprint.startDate, "MM/dd")} -{" "}
-                {format(sprint.endDate, "MM/dd")}
+                {format(sprint.startDate, "yyyy/MM/dd")} -{" "}
+                {format(sprint.endDate, "yyyy/MM/dd")}
               </TableCell>
               <TableCell className="text-right">{sprint.velocity}</TableCell>
               <TableCell className="text-right">{sprint.pointsBurned}</TableCell>
@@ -49,6 +69,7 @@ function ScenarioTable({ scenario }: { readonly scenario: Scenario }) {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }
@@ -73,13 +94,13 @@ export function SprintTable({ result }: SprintTableProps) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="optimistic">
-            <ScenarioTable scenario={result.optimistic} />
+            <ScenarioTable scenario={result.optimistic} label="楽観" />
           </TabsContent>
           <TabsContent value="standard">
-            <ScenarioTable scenario={result.standard} />
+            <ScenarioTable scenario={result.standard} label="標準" />
           </TabsContent>
           <TabsContent value="pessimistic">
-            <ScenarioTable scenario={result.pessimistic} />
+            <ScenarioTable scenario={result.pessimistic} label="悲観" />
           </TabsContent>
         </Tabs>
       </CardContent>

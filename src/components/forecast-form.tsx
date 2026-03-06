@@ -86,6 +86,11 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
               value={data.bufferPercent}
               onChange={(e) => update("bufferPercent", e.target.value)}
             />
+            {Number(data.bufferPercent) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                悲観シナリオ：ベロシティが {data.bufferPercent}% 低下し、総ポイントが {data.bufferPercent}% 増加して計算されます
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

@@ -49,6 +49,25 @@ export default function Home() {
   const [phases, setPhases] = useState<readonly PhaseFormData[]>(initialPhases)
   const [result, setResult] = useState<ForecastResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isDirty, setIsDirty] = useState(false)
+
+  const handleFormChange = (data: FormData) => {
+    setFormData(data)
+    setResult(null)
+    setIsDirty(true)
+  }
+
+  const handlePhasesChange = (newPhases: readonly PhaseFormData[]) => {
+    const sorted = [...newPhases].sort((a, b) => {
+      if (!a.fromDate && !b.fromDate) return 0
+      if (!a.fromDate) return 1
+      if (!b.fromDate) return -1
+      return a.fromDate.localeCompare(b.fromDate)
+    })
+    setPhases(sorted)
+    setResult(null)
+    setIsDirty(true)
+  }
 
   const velocityPhases: readonly VelocityPhase[] = useMemo(() => {
     return phases
@@ -93,6 +112,7 @@ export default function Home() {
     }
 
     setResult(calculateForecast(input))
+    setIsDirty(false)
   }
 
   return (
@@ -107,11 +127,17 @@ export default function Home() {
 
         <Separator />
 
-        <ForecastForm data={formData} onChange={setFormData} />
-        <VelocityPhases phases={phases} onChange={setPhases} />
+        <ForecastForm data={formData} onChange={handleFormChange} />
+        <VelocityPhases phases={phases} onChange={handlePhasesChange} />
 
         {error && (
           <p className="text-sm text-destructive font-medium">{error}</p>
+        )}
+
+        {isDirty && (
+          <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+            値が変更されました。再計算してください。
+          </p>
         )}
 
         <Button onClick={handleCalculate} className="w-full" size="lg">
@@ -123,7 +149,7 @@ export default function Home() {
             <Separator />
             <ForecastResultCards result={result} />
             <BurndownChart result={result} velocityPhases={velocityPhases} />
-            <SprintTable scenario={result.standard} />
+            <SprintTable result={result} />
           </div>
         )}
       </div>

@@ -29,9 +29,9 @@ export function SprintTable({ scenario }: SprintTableProps) {
               <TableRow>
                 <TableHead className="w-20">スプリント</TableHead>
                 <TableHead>期間</TableHead>
-                <TableHead className="text-right">ベロシティ</TableHead>
-                <TableHead className="text-right">消化</TableHead>
-                <TableHead className="text-right">残り</TableHead>
+                <TableHead className="text-right">ベロシティ (pt)</TableHead>
+                <TableHead className="text-right">消化 (pt)</TableHead>
+                <TableHead className="text-right">残り (pt)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

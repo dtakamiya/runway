@@ -59,12 +59,12 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>スプリント期間</Label>
+            <Label htmlFor="sprintDays">スプリント期間</Label>
             <Select
               value={data.sprintDays}
               onValueChange={(value) => update("sprintDays", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="sprintDays">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

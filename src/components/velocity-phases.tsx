@@ -101,6 +101,7 @@ export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
               onClick={() => removePhase(phase.id)}
               disabled={phases.length <= 1}
               className="mb-0.5"
+              aria-label="フェーズを削除"
             >
               <Trash2 className="h-4 w-4 text-muted-foreground" />
             </Button>

@@ -47,12 +47,32 @@ describe("VelocityHistory", () => {
     render(<VelocityHistory onApply={() => {}} />)
     const input = screen.getByPlaceholderText(/例: 20, 18, 22, 25/)
     fireEvent.change(input, { target: { value: "5, 15, 25" } })
-    // 各ラベルの次の要素で確認
     expect(screen.getByText("スプリント数")).toBeInTheDocument()
-    expect(screen.getByText("最小")).toBeInTheDocument()
-    expect(screen.getByText("最大")).toBeInTheDocument()
-    // 値の確認
-    const allText = screen.getByText("5") // min=5
-    expect(allText).toBeInTheDocument()
+    expect(screen.getByText("最小 / 最大")).toBeInTheDocument()
+    expect(screen.getByText("5 / 25")).toBeInTheDocument()
+  })
+
+  it("標準偏差とCV%を表示する", () => {
+    render(<VelocityHistory onApply={() => {}} />)
+    const input = screen.getByPlaceholderText(/例: 20, 18, 22, 25/)
+    fireEvent.change(input, { target: { value: "10, 20, 30" } })
+    expect(screen.getByText("標準偏差 (σ)")).toBeInTheDocument()
+    expect(screen.getByText("変動係数 (CV%)")).toBeInTheDocument()
+  })
+
+  it("CV%が30以上のとき警告メッセージを表示する", () => {
+    render(<VelocityHistory onApply={() => {}} />)
+    const input = screen.getByPlaceholderText(/例: 20, 18, 22, 25/)
+    // [10, 20, 30]: CV≈40% → 警告表示
+    fireEvent.change(input, { target: { value: "10, 20, 30" } })
+    expect(screen.getByText(/不確実性バッファーを/)).toBeInTheDocument()
+  })
+
+  it("CV%が低いとき警告メッセージを表示しない", () => {
+    render(<VelocityHistory onApply={() => {}} />)
+    const input = screen.getByPlaceholderText(/例: 20, 18, 22, 25/)
+    // [19, 20, 21]: CV≈4% → 警告なし
+    fireEvent.change(input, { target: { value: "19, 20, 21" } })
+    expect(screen.queryByText(/不確実性バッファーを/)).not.toBeInTheDocument()
   })
 })

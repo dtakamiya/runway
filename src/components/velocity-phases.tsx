@@ -95,7 +95,7 @@ export function VelocityPhases({ phases, onChange, sprintDays, startDate }: Velo
       <CardContent className="space-y-3">
         {phases.map((phase, index) => (
           <div key={phase.id} className="space-y-2">
-            <div className="grid grid-cols-2 md:grid-cols-[1fr_80px_1fr_auto] gap-2 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1fr_80px_1fr_auto] gap-2 items-end">
               <div>
                 <Label className="text-xs">
                   {index === 0 ? "開始日" : "変更日"}

@@ -27,18 +27,18 @@ type BurndownChartProps = {
 type ChartDataPoint = {
   readonly label: string
   readonly sprintNum: string
-  readonly optimistic: number
-  readonly standard: number
-  readonly pessimistic: number
+  readonly optimistic: number | undefined
+  readonly standard: number | undefined
+  readonly pessimistic: number | undefined
 }
 
 function interpolateRemaining(
   sprints: readonly SprintBreakdown[],
   idx: number,
   fraction: number
-): number {
+): number | undefined {
   const sprint = sprints[idx]
-  if (!sprint) return 0
+  if (!sprint) return undefined
   const startRemaining = sprint.remainingPoints + sprint.pointsBurned
   return roundPt(startRemaining - fraction * sprint.pointsBurned)
 }
@@ -90,9 +90,9 @@ function buildChartData(
     data.push({
       label: dateLabel,
       sprintNum: `S${i + 1}`,
-      optimistic: roundPt(optSprint?.remainingPoints ?? 0),
-      standard: roundPt(stdSprint?.remainingPoints ?? 0),
-      pessimistic: roundPt(pesSprint?.remainingPoints ?? 0),
+      optimistic: optSprint !== undefined ? roundPt(optSprint.remainingPoints) : undefined,
+      standard: stdSprint !== undefined ? roundPt(stdSprint.remainingPoints) : undefined,
+      pessimistic: pesSprint !== undefined ? roundPt(pesSprint.remainingPoints) : undefined,
     })
   }
 

@@ -119,9 +119,13 @@ export default function Home() {
       completedSprints: completedSprintForms as CompletedSprintFormData[],
     })
     const url = `${window.location.origin}${window.location.pathname}?s=${encoded}`
-    await navigator.clipboard.writeText(url)
-    setCopySuccess(true)
-    setTimeout(() => setCopySuccess(false), 2000)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch {
+      // クリップボードへの書き込みが拒否された場合は無視
+    }
   }
 
   const handleFormChange = (data: FormData) => {

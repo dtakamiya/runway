@@ -14,6 +14,10 @@ export type SavedState = {
     velocity: string
     label: string
   }>
+  completedSprints?: Array<{
+    id: string
+    actualPoints: string
+  }>
 }
 
 export function saveState(state: SavedState): void {

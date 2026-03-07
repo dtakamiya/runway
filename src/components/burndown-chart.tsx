@@ -1,8 +1,9 @@
 "use client"
 
 import {
-  AreaChart,
+  ComposedChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,14 +15,16 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
-import type { ForecastResult, VelocityPhase } from "@/lib/types"
+import type { ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
-import { getIdealRemainingAtDate } from "@/lib/forecast"
+import { getIdealRemainingAtDate, buildActualBurndown, calculateDelayDays } from "@/lib/forecast"
 
 type BurndownChartProps = {
   readonly result: ForecastResult
   readonly velocityPhases: readonly VelocityPhase[]
   readonly deadline?: string
+  readonly completedSprints?: readonly CompletedSprint[]
+  readonly totalPoints?: number
 }
 
 type ChartDataPoint = {
@@ -30,6 +33,7 @@ type ChartDataPoint = {
   readonly optimistic: number | null | undefined
   readonly standard: number | null | undefined
   readonly pessimistic: number | null | undefined
+  readonly actual?: number | null
 }
 
 type SpecialPoint = {
@@ -41,7 +45,9 @@ type SpecialPoint = {
 export function buildChartData(
   result: ForecastResult,
   today: Date,
-  deadline?: Date
+  deadline?: Date,
+  completedSprints?: readonly CompletedSprint[],
+  totalPoints?: number
 ): readonly ChartDataPoint[] {
   const maxSprints = Math.max(
     result.optimistic.sprintCount,
@@ -49,7 +55,7 @@ export function buildChartData(
     result.pessimistic.sprintCount
   )
 
-  const totalPoints = result.standard.sprints[0]
+  const totalPointsVal = result.standard.sprints[0]
     ? result.standard.sprints[0].remainingPoints +
       result.standard.sprints[0].pointsBurned
     : 0
@@ -57,13 +63,23 @@ export function buildChartData(
   const startDate = result.standard.sprints[0]?.startDate
   const startLabel = startDate ? format(startDate, "M/d") : "開始"
 
+  // 実績バーンダウンポイントを事前計算
+  const actualBurndown =
+    completedSprints && totalPoints !== undefined
+      ? buildActualBurndown(totalPoints, completedSprints, result.standard.sprints)
+      : []
+  const actualBySprintIndex = new Map(
+    actualBurndown.map((p) => [p.sprintIndex, p.remaining])
+  )
+
   const data: ChartDataPoint[] = [
     {
       label: startLabel,
       sprintNum: "開始",
       optimistic: result.optimistic.totalPoints,
-      standard: totalPoints,
+      standard: totalPointsVal,
       pessimistic: result.pessimistic.totalPoints,
+      actual: actualBySprintIndex.has(0) ? actualBySprintIndex.get(0) : undefined,
     },
   ]
 
@@ -76,12 +92,16 @@ export function buildChartData(
     const sprint = stdSprint ?? pesSprint
     const dateLabel = sprint ? format(sprint.endDate, "M/d") : `S${i + 1}`
 
+    const sprintIndex = i + 1
     data.push({
       label: dateLabel,
-      sprintNum: `S${i + 1}`,
+      sprintNum: `S${sprintIndex}`,
       optimistic: optSprint !== undefined ? roundPt(optSprint.remainingPoints) : undefined,
       standard: stdSprint !== undefined ? roundPt(stdSprint.remainingPoints) : undefined,
       pessimistic: pesSprint !== undefined ? roundPt(pesSprint.remainingPoints) : undefined,
+      actual: actualBySprintIndex.has(sprintIndex)
+        ? actualBySprintIndex.get(sprintIndex)
+        : undefined,
     })
   }
 
@@ -157,11 +177,24 @@ export function findPhaseChangeMarkers(
   return markers
 }
 
-export function BurndownChart({ result, velocityPhases, deadline }: BurndownChartProps) {
+export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints }: BurndownChartProps) {
   const today = new Date()
   const deadlineDate = deadline ? parseISO(deadline) : undefined
-  const data = buildChartData(result, today, deadlineDate)
+  const data = buildChartData(result, today, deadlineDate, completedSprints, totalPoints)
   const phaseMarkers = findPhaseChangeMarkers(result, velocityPhases)
+
+  // 遅延日数計算
+  const hasActual = completedSprints && completedSprints.length > 0 && totalPoints !== undefined
+  const sprintDaysNum = result.standard.sprints[0]
+    ? Math.round(
+        (result.standard.sprints[0].endDate.getTime() -
+          result.standard.sprints[0].startDate.getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : 14
+  const delayDays = hasActual
+    ? calculateDelayDays(totalPoints!, completedSprints!, result.standard, sprintDaysNum)
+    : null
 
   // 今日のデータポイントがチャートデータに存在するか確認
   const isTodayInSprints = result.standard.sprints.some(
@@ -183,8 +216,25 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <CardTitle className="text-base">バーンダウンチャート</CardTitle>
+          {delayDays !== null && (
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                delayDays > 0
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  : delayDays < 0
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {delayDays > 0
+                ? `遅延: ${delayDays}日`
+                : delayDays < 0
+                ? `前倒し: ${Math.abs(delayDays)}日`
+                : "予定通り"}
+            </span>
+          )}
           {idealRemaining !== null && (
             <span className="ml-auto text-xs text-muted-foreground">
               今日の理想残: <strong className="text-foreground">{idealRemaining} pt</strong>
@@ -195,7 +245,7 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
       <CardContent>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <ComposedChart
               data={data}
               margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
             >
@@ -316,7 +366,18 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
                 strokeWidth={2}
                 connectNulls
               />
-            </AreaChart>
+              {hasActual && (
+                <Line
+                  type="monotone"
+                  dataKey="actual"
+                  name="実績"
+                  stroke="#ef4444"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: "#ef4444", stroke: "white", strokeWidth: 1.5 }}
+                  connectNulls={false}
+                />
+              )}
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

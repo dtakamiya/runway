@@ -210,7 +210,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div id="main-content" className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
         <div className="flex items-center gap-3">
           <div

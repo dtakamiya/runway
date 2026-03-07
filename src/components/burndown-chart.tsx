@@ -169,20 +169,21 @@ export function buildChartData(
 export function findPhaseChangeMarkers(
   result: ForecastResult,
   phases: readonly VelocityPhase[]
-): readonly { xLabel: string; markerLabel: string }[] {
+): readonly { xLabel: string; markerLabel: string; isFirst: boolean }[] {
   if (phases.length <= 1) return []
   const sorted = [...phases].sort(
     (a, b) => a.fromDate.getTime() - b.fromDate.getTime()
   )
 
-  const markers: { xLabel: string; markerLabel: string }[] = []
+  const markers: { xLabel: string; markerLabel: string; isFirst: boolean }[] = []
 
-  // フェーズ1（最初のフェーズ）は最初のスプリント開始位置にラベルを置く
+  // フェーズ1（最初のフェーズ）は最初のスプリント開始位置に縦線のみ（ラベルなし）
   const firstSprint = result.standard.sprints[0]
   if (firstSprint) {
     markers.push({
       xLabel: format(firstSprint.startDate, "M/d"),
       markerLabel: sorted[0].label || `vel=${sorted[0].velocity}`,
+      isFirst: true,
     })
   }
 
@@ -195,6 +196,7 @@ export function findPhaseChangeMarkers(
         markers.push({
           xLabel: format(sprint.startDate, "M/d"),
           markerLabel: sorted[p].label || `vel=${sorted[p].velocity}`,
+          isFirst: false,
         })
         break
       }
@@ -362,18 +364,34 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 />
               )}
 
-              {phaseMarkers.map((marker) => (
+              {phaseMarkers.map((marker, index) => (
                 <ReferenceLine
                   key={marker.xLabel}
                   x={marker.xLabel}
                   stroke={phaseLineColor}
-                  strokeDasharray="4 4"
-                  label={{
-                    value: marker.markerLabel,
-                    position: "top",
-                    fontSize: 11,
-                    fill: phaseLineColor,
-                  }}
+                  strokeWidth={marker.isFirst ? 1 : 2}
+                  strokeDasharray={marker.isFirst ? "4 4" : undefined}
+                  label={
+                    marker.isFirst
+                      ? undefined
+                      : ({ viewBox }: { viewBox?: { x?: number; y?: number } }) => {
+                          const x = viewBox?.x ?? 0
+                          const y = viewBox?.y ?? 0
+                          // 偶数インデックス: 上寄り、奇数インデックス: やや下にずらして重なりを防ぐ
+                          const yPos = index % 2 === 0 ? y - 14 : y + 2
+                          return (
+                            <text
+                              x={x}
+                              y={yPos}
+                              textAnchor="middle"
+                              fill={phaseLineColor}
+                              fontSize={11}
+                            >
+                              {marker.markerLabel}
+                            </text>
+                          )
+                        }
+                  }
                 />
               ))}
 

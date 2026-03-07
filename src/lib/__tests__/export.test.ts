@@ -59,4 +59,33 @@ describe("toCsv", () => {
     const lines = csv.split("\n")
     expect(lines[3]).toBe("S3,2026/04/07,2026/04/21,15,10,0")
   })
+
+  it("浮動小数点誤差が丸められて出力される", () => {
+    const floatScenario: Scenario = {
+      totalPoints: 100,
+      sprintCount: 2,
+      endDate: new Date("2026-04-07"),
+      sprints: [
+        {
+          sprintNumber: 1,
+          startDate: new Date("2026-03-10"),
+          endDate: new Date("2026-03-24"),
+          velocity: 20.4,
+          pointsBurned: 20.4,
+          remainingPoints: 79.6,
+        },
+        {
+          sprintNumber: 2,
+          startDate: new Date("2026-03-24"),
+          endDate: new Date("2026-04-07"),
+          velocity: 20.4,
+          pointsBurned: 20.4,
+          remainingPoints: 59.199999999999996,
+        },
+      ],
+    }
+    const csv = toCsv(floatScenario)
+    const lines = csv.split("\n")
+    expect(lines[2]).toBe("S2,2026/03/24,2026/04/07,20.4,20.4,59.2")
+  })
 })

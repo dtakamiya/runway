@@ -1,5 +1,6 @@
 import { format } from "date-fns"
 import type { Scenario } from "./types"
+import { roundPt } from "./utils"
 
 const DATE_FORMAT = "yyyy/MM/dd"
 
@@ -10,9 +11,9 @@ export function toCsv(scenario: Scenario): string {
       `S${s.sprintNumber}`,
       format(s.startDate, DATE_FORMAT),
       format(s.endDate, DATE_FORMAT),
-      s.velocity,
-      s.pointsBurned,
-      s.remainingPoints,
+      roundPt(s.velocity),
+      roundPt(s.pointsBurned),
+      roundPt(s.remainingPoints),
     ].join(",")
   )
   return [header, ...rows].join("\n")

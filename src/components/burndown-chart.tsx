@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
 import type { ForecastResult, VelocityPhase } from "@/lib/types"
+import { roundPt } from "@/lib/utils"
 
 type BurndownChartProps = {
   readonly result: ForecastResult
@@ -65,9 +66,9 @@ function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
     data.push({
       label: dateLabel,
       sprintNum: `S${i + 1}`,
-      optimistic: optSprint?.remainingPoints ?? 0,
-      standard: stdSprint?.remainingPoints ?? 0,
-      pessimistic: pesSprint?.remainingPoints ?? 0,
+      optimistic: roundPt(optSprint?.remainingPoints ?? 0),
+      standard: roundPt(stdSprint?.remainingPoints ?? 0),
+      pessimistic: roundPt(pesSprint?.remainingPoints ?? 0),
     })
   }
 

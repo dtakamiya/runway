@@ -36,8 +36,8 @@ function DeadlineBadge({
 
 const scenarioConfig = [
   {
-    key: "optimistic" as const,
-    title: "楽観",
+    key: "highVelocity" as const,
+    title: "好調",
     color: "text-green-600",
     bg: "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950",
     badge: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -54,8 +54,8 @@ const scenarioConfig = [
     emphasis: true,
   },
   {
-    key: "pessimistic" as const,
-    title: "悲観",
+    key: "lowVelocity" as const,
+    title: "不調",
     color: "text-orange-600",
     bg: "border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950",
     badge:

@@ -82,24 +82,24 @@ export function SprintTable({ result }: SprintTableProps) {
       <CardContent>
         <Tabs defaultValue="standard">
           <TabsList>
-            <TabsTrigger value="optimistic">
-              楽観 ({result.optimistic.sprintCount} スプリント)
+            <TabsTrigger value="highVelocity">
+              好調 ({result.highVelocity.sprintCount} スプリント)
             </TabsTrigger>
             <TabsTrigger value="standard">
               標準 ({result.standard.sprintCount} スプリント)
             </TabsTrigger>
-            <TabsTrigger value="pessimistic">
-              悲観 ({result.pessimistic.sprintCount} スプリント)
+            <TabsTrigger value="lowVelocity">
+              不調 ({result.lowVelocity.sprintCount} スプリント)
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="optimistic">
-            <ScenarioTable scenario={result.optimistic} label="楽観" />
+          <TabsContent value="highVelocity">
+            <ScenarioTable scenario={result.highVelocity} label="好調" />
           </TabsContent>
           <TabsContent value="standard">
             <ScenarioTable scenario={result.standard} label="標準" />
           </TabsContent>
-          <TabsContent value="pessimistic">
-            <ScenarioTable scenario={result.pessimistic} label="悲観" />
+          <TabsContent value="lowVelocity">
+            <ScenarioTable scenario={result.lowVelocity} label="不調" />
           </TabsContent>
         </Tabs>
       </CardContent>

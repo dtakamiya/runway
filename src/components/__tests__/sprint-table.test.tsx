@@ -12,9 +12,9 @@ const mockSprint = {
 }
 
 const mockResult: ForecastResult = {
-  optimistic: { sprintCount: 4, totalPoints: 100, endDate: new Date("2026-05-05"), sprints: [mockSprint] },
+  highVelocity: { sprintCount: 4, totalPoints: 100, endDate: new Date("2026-05-05"), sprints: [mockSprint] },
   standard: { sprintCount: 5, totalPoints: 100, endDate: new Date("2026-05-19"), sprints: [mockSprint] },
-  pessimistic: { sprintCount: 7, totalPoints: 120, endDate: new Date("2026-06-16"), sprints: [mockSprint] },
+  lowVelocity: { sprintCount: 7, totalPoints: 100, endDate: new Date("2026-06-16"), sprints: [mockSprint] },
 }
 
 describe("SprintTable", () => {

@@ -3,7 +3,7 @@ import { ForecastResultCards } from "../forecast-result"
 import type { ForecastResult } from "@/lib/types"
 
 const mockResult: ForecastResult = {
-  optimistic: {
+  highVelocity: {
     sprintCount: 4,
     totalPoints: 100,
     endDate: new Date("2026-05-05"),
@@ -15,9 +15,9 @@ const mockResult: ForecastResult = {
     endDate: new Date("2026-05-19"),
     sprints: [],
   },
-  pessimistic: {
+  lowVelocity: {
     sprintCount: 7,
-    totalPoints: 120,
+    totalPoints: 100,
     endDate: new Date("2026-06-16"),
     sprints: [],
   },
@@ -30,9 +30,9 @@ describe("ForecastResultCards", () => {
     expect(standardCard?.className).toMatch(/ring/)
   })
 
-  it("楽観シナリオに TrendingUp アイコンが表示される", () => {
+  it("好調シナリオに TrendingUp アイコンが表示される", () => {
     render(<ForecastResultCards result={mockResult} />)
-    expect(screen.getByTestId("icon-optimistic")).toBeInTheDocument()
+    expect(screen.getByTestId("icon-highVelocity")).toBeInTheDocument()
   })
 
   it("標準シナリオに Minus アイコンが表示される", () => {
@@ -40,16 +40,16 @@ describe("ForecastResultCards", () => {
     expect(screen.getByTestId("icon-standard")).toBeInTheDocument()
   })
 
-  it("悲観シナリオに TrendingDown アイコンが表示される", () => {
+  it("不調シナリオに TrendingDown アイコンが表示される", () => {
     render(<ForecastResultCards result={mockResult} />)
-    expect(screen.getByTestId("icon-pessimistic")).toBeInTheDocument()
+    expect(screen.getByTestId("icon-lowVelocity")).toBeInTheDocument()
   })
 
   it("3つのシナリオカードが表示される", () => {
     render(<ForecastResultCards result={mockResult} />)
-    expect(screen.getByText("楽観")).toBeInTheDocument()
+    expect(screen.getByText("好調")).toBeInTheDocument()
     expect(screen.getByText("標準")).toBeInTheDocument()
-    expect(screen.getByText("悲観")).toBeInTheDocument()
+    expect(screen.getByText("不調")).toBeInTheDocument()
   })
 
   describe("デッドライン表示", () => {
@@ -75,8 +75,8 @@ describe("ForecastResultCards", () => {
       expect(badges).toHaveLength(3)
     })
 
-    it("一部シナリオがデッドインを超える場合、正しく混在表示される", () => {
-      // 楽観(05/05)と標準(05/19)はOK、悲観(06/16)はアウト
+    it("一部シナリオがデッドラインを超える場合、正しく混在表示される", () => {
+      // 好調(05/05)と標準(05/19)はOK、不調(06/16)はアウト
       render(
         <ForecastResultCards result={mockResult} deadline="2026-05-20" />
       )
@@ -87,7 +87,7 @@ describe("ForecastResultCards", () => {
     })
 
     it("超過日数が正確に表示される", () => {
-      // 楽観(05/05)は2026-05-01より4日後 → 4日超過
+      // 好調(05/05)は2026-05-01より4日後 → 4日超過
       render(
         <ForecastResultCards result={mockResult} deadline="2026-05-01" />
       )

@@ -102,7 +102,7 @@ export function ForecastForm({ data, onChange, errors }: ForecastFormProps) {
             />
             {Number(data.bufferPercent) > 0 && (
               <p className="text-xs text-muted-foreground">
-                悲観：vel -{data.bufferPercent}% / pt +{data.bufferPercent}%
+                不調：vel -{data.bufferPercent}%
               </p>
             )}
           </div>

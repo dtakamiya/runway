@@ -21,7 +21,7 @@ function makeResult(sprints: { startDate: Date; endDate: Date }[]): ForecastResu
     endDate: sprints[sprints.length - 1]?.endDate ?? new Date(),
     sprints: sprintBreakdowns,
   }
-  return { optimistic: scenario, standard: scenario, pessimistic: scenario }
+  return { highVelocity: scenario, standard: scenario, lowVelocity: scenario }
 }
 
 describe("buildChartData", () => {
@@ -54,7 +54,7 @@ describe("buildChartData", () => {
       endDate: sprintDefs[sprintDefs.length - 1]?.endDate ?? new Date(),
       sprints: sprintBreakdowns,
     }
-    return { optimistic: scenario, standard: scenario, pessimistic: scenario }
+    return { highVelocity: scenario, standard: scenario, lowVelocity: scenario }
   }
 
   it("デッドラインのデータポイントはシナリオ値が null になる", () => {
@@ -66,9 +66,9 @@ describe("buildChartData", () => {
 
     const dlPoint = data.find((d) => d.sprintNum === "DL")
     expect(dlPoint).toBeDefined()
-    expect(dlPoint?.optimistic).toBeNull()
+    expect(dlPoint?.highVelocity).toBeNull()
     expect(dlPoint?.standard).toBeNull()
-    expect(dlPoint?.pessimistic).toBeNull()
+    expect(dlPoint?.lowVelocity).toBeNull()
     expect(dlPoint?.label).toBe("4/30")
   })
 
@@ -80,9 +80,9 @@ describe("buildChartData", () => {
 
     const todayPoint = data.find((d) => d.sprintNum === "今日")
     expect(todayPoint).toBeDefined()
-    expect(todayPoint?.optimistic).toBeNull()
+    expect(todayPoint?.highVelocity).toBeNull()
     expect(todayPoint?.standard).toBeNull()
-    expect(todayPoint?.pessimistic).toBeNull()
+    expect(todayPoint?.lowVelocity).toBeNull()
   })
 
   it("デッドラインがスプリント範囲外の場合、DL データポイントが追加されない", () => {
@@ -219,7 +219,7 @@ describe("buildBaseDataPoints", () => {
       endDate: sprintDefs[sprintDefs.length - 1]?.endDate ?? new Date(),
       sprints: sprintBreakdowns,
     }
-    return { optimistic: scenario, standard: scenario, pessimistic: scenario }
+    return { highVelocity: scenario, standard: scenario, lowVelocity: scenario }
   }
 
   it("最初の要素が開始点（sprintNum: '開始'）", () => {
@@ -274,7 +274,7 @@ describe("collectSpecialPoints", () => {
       endDate: sprints[sprints.length - 1].endDate,
       sprints: sprintBreakdowns,
     }
-    return { optimistic: scenario, standard: scenario, pessimistic: scenario }
+    return { highVelocity: scenario, standard: scenario, lowVelocity: scenario }
   }
 
   it("todayがスプリント範囲内なら「今日」を含む", () => {

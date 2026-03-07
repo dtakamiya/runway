@@ -31,9 +31,9 @@ type BurndownChartProps = {
 type ChartDataPoint = {
   readonly label: string
   readonly sprintNum: string
-  readonly optimistic: number | null | undefined
+  readonly highVelocity: number | null | undefined
   readonly standard: number | null | undefined
-  readonly pessimistic: number | null | undefined
+  readonly lowVelocity: number | null | undefined
   readonly actual?: number | null
 }
 
@@ -48,9 +48,9 @@ export function buildBaseDataPoints(
   actualBySprintIndex: Map<number, number>
 ): ChartDataPoint[] {
   const maxSprints = Math.max(
-    result.optimistic.sprintCount,
+    result.highVelocity.sprintCount,
     result.standard.sprintCount,
-    result.pessimistic.sprintCount
+    result.lowVelocity.sprintCount
   )
 
   const totalPointsVal = result.standard.sprints[0]
@@ -64,29 +64,29 @@ export function buildBaseDataPoints(
     {
       label: startLabel,
       sprintNum: "開始",
-      optimistic: result.optimistic.totalPoints,
+      highVelocity: result.highVelocity.totalPoints,
       standard: totalPointsVal,
-      pessimistic: result.pessimistic.totalPoints,
+      lowVelocity: result.lowVelocity.totalPoints,
       actual: actualBySprintIndex.has(0) ? actualBySprintIndex.get(0) : undefined,
     },
   ]
 
   for (let i = 0; i < maxSprints; i++) {
-    const optSprint = result.optimistic.sprints[i]
+    const highSprint = result.highVelocity.sprints[i]
     const stdSprint = result.standard.sprints[i]
-    const pesSprint = result.pessimistic.sprints[i]
+    const lowSprint = result.lowVelocity.sprints[i]
 
-    // X軸ラベルは標準シナリオの日付を優先、なければ悲観シナリオの日付
-    const sprint = stdSprint ?? pesSprint
+    // X軸ラベルは標準シナリオの日付を優先、なければ不調シナリオの日付
+    const sprint = stdSprint ?? lowSprint
     const dateLabel = sprint ? format(sprint.endDate, "M/d") : `S${i + 1}`
     const sprintIndex = i + 1
 
     data.push({
       label: dateLabel,
       sprintNum: `S${sprintIndex}`,
-      optimistic: optSprint !== undefined ? roundPt(optSprint.remainingPoints) : undefined,
+      highVelocity: highSprint !== undefined ? roundPt(highSprint.remainingPoints) : undefined,
       standard: stdSprint !== undefined ? roundPt(stdSprint.remainingPoints) : undefined,
-      pessimistic: pesSprint !== undefined ? roundPt(pesSprint.remainingPoints) : undefined,
+      lowVelocity: lowSprint !== undefined ? roundPt(lowSprint.remainingPoints) : undefined,
       actual: actualBySprintIndex.has(sprintIndex)
         ? actualBySprintIndex.get(sprintIndex)
         : undefined,
@@ -156,9 +156,9 @@ export function buildChartData(
       data.splice(insertIdx, 0, {
         label: sp.label,
         sprintNum: sp.sprintNum,
-        optimistic: null,
+        highVelocity: null,
         standard: null,
-        pessimistic: null,
+        lowVelocity: null,
       })
     }
   }
@@ -379,8 +379,8 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
 
               <Area
                 type="monotone"
-                dataKey="pessimistic"
-                name="悲観"
+                dataKey="lowVelocity"
+                name="不調"
                 stroke="#f97316"
                 fill="#fed7aa"
                 fillOpacity={0.3}
@@ -399,8 +399,8 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
               />
               <Area
                 type="monotone"
-                dataKey="optimistic"
-                name="楽観"
+                dataKey="highVelocity"
+                name="好調"
                 stroke="#22c55e"
                 fill="#bbf7d0"
                 fillOpacity={0.3}

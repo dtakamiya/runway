@@ -27,24 +27,23 @@ describe("calculateForecast", () => {
     expect(lastSprint.remainingPoints).toBe(0)
   })
 
-  it("should produce optimistic faster than standard", () => {
+  it("好調は標準より速い", () => {
     const result = calculateForecast(baseInput)
-    expect(result.optimistic.sprintCount).toBeLessThanOrEqual(
+    expect(result.highVelocity.sprintCount).toBeLessThanOrEqual(
       result.standard.sprintCount
     )
   })
 
-  it("should produce pessimistic slower than standard", () => {
+  it("不調は標準より遅い", () => {
     const result = calculateForecast(baseInput)
-    expect(result.pessimistic.sprintCount).toBeGreaterThanOrEqual(
+    expect(result.lowVelocity.sprintCount).toBeGreaterThanOrEqual(
       result.standard.sprintCount
     )
   })
 
-  it("should apply buffer correctly for pessimistic", () => {
+  it("不調シナリオはポイント増加なし（標準と同じポイント数）", () => {
     const result = calculateForecast(baseInput)
-    // Pessimistic totalPoints = 100 * 1.2 = 120
-    expect(result.pessimistic.totalPoints).toBe(120)
+    expect(result.lowVelocity.totalPoints).toBe(100)
   })
 
   it("should handle single phase", () => {

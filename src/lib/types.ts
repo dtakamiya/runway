@@ -29,9 +29,9 @@ export type Scenario = {
 }
 
 export type ForecastResult = {
-  readonly optimistic: Scenario
+  readonly highVelocity: Scenario
   readonly standard: Scenario
-  readonly pessimistic: Scenario
+  readonly lowVelocity: Scenario
 }
 
 export type CompletedSprint = {

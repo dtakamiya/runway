@@ -164,7 +164,7 @@ export function calculateForecast(input: ForecastInput): ForecastResult {
     input
   const bufferRatio = bufferPercent / 100
 
-  const optimistic = buildScenario(
+  const highVelocity = buildScenario(
     totalPoints,
     startDate,
     sprintDays,
@@ -178,12 +178,12 @@ export function calculateForecast(input: ForecastInput): ForecastResult {
     velocityPhases
   )
 
-  const pessimistic = buildScenario(
-    Math.ceil(totalPoints * (1 + bufferRatio)),
+  const lowVelocity = buildScenario(
+    totalPoints,
     startDate,
     sprintDays,
     applyBuffer(velocityPhases, 1 - bufferRatio)
   )
 
-  return { optimistic, standard, pessimistic }
+  return { highVelocity, standard, lowVelocity }
 }

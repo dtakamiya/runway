@@ -1,10 +1,14 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 Runway は、ストーリーポイントとベロシティを使ってスプリントの完了予測を行うプランニングアプリケーション。チームのベロシティ（1スプリントあたりの消化ポイント数）とバックログの残ストーリーポイントから、開発完了時期を予測する。
+
+## Workflow
+- **対応を始めるときにはworktreeを作成する**
+- **TDDで作業する**
+- **PRを作成する**
+- **worktreeを削除する**
 
 ## Tech Stack
 

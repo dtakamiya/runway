@@ -13,7 +13,7 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
-import type { ForecastResult, VelocityPhase } from "@/lib/types"
+import type { ForecastResult, SprintBreakdown, VelocityPhase } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
 
 type BurndownChartProps = {
@@ -29,7 +29,21 @@ type ChartDataPoint = {
   readonly pessimistic: number
 }
 
-function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
+function interpolateRemaining(
+  sprints: readonly SprintBreakdown[],
+  idx: number,
+  fraction: number
+): number {
+  const sprint = sprints[idx]
+  if (!sprint) return 0
+  const startRemaining = sprint.remainingPoints + sprint.pointsBurned
+  return roundPt(startRemaining - fraction * sprint.pointsBurned)
+}
+
+function buildChartData(
+  result: ForecastResult,
+  today: Date
+): readonly ChartDataPoint[] {
   const maxSprints = Math.max(
     result.optimistic.sprintCount,
     result.standard.sprintCount,
@@ -72,27 +86,49 @@ function buildChartData(result: ForecastResult): readonly ChartDataPoint[] {
     })
   }
 
+  // 今日がスプリント期間内なら今日のデータポイントを挿入
+  const sprintIdx = result.standard.sprints.findIndex(
+    (s) => today >= s.startDate && today < s.endDate
+  )
+  if (sprintIdx >= 0) {
+    const stdSprint = result.standard.sprints[sprintIdx]
+    const todayLabel = format(today, "M/d")
+    const alreadyExists = data.some((d) => d.label === todayLabel)
+    if (!alreadyExists) {
+      const fraction =
+        (today.getTime() - stdSprint.startDate.getTime()) /
+        (stdSprint.endDate.getTime() - stdSprint.startDate.getTime())
+      data.splice(sprintIdx + 1, 0, {
+        label: todayLabel,
+        sprintNum: "今日",
+        optimistic: interpolateRemaining(result.optimistic.sprints, sprintIdx, fraction),
+        standard: interpolateRemaining(result.standard.sprints, sprintIdx, fraction),
+        pessimistic: interpolateRemaining(result.pessimistic.sprints, sprintIdx, fraction),
+      })
+    }
+  }
+
   return data
 }
 
-function findPhaseChangeSprintIndices(
+function findPhaseChangeMarkers(
   result: ForecastResult,
   phases: readonly VelocityPhase[]
-): readonly { index: number; label: string }[] {
+): readonly { xLabel: string; markerLabel: string }[] {
   if (phases.length <= 1) return []
   const sorted = [...phases].sort(
     (a, b) => a.fromDate.getTime() - b.fromDate.getTime()
   )
 
-  const markers: { index: number; label: string }[] = []
+  const markers: { xLabel: string; markerLabel: string }[] = []
   for (let p = 1; p < sorted.length; p++) {
     const phaseDate = sorted[p].fromDate
     for (let i = 0; i < result.standard.sprints.length; i++) {
       const sprint = result.standard.sprints[i]
       if (sprint.startDate <= phaseDate && sprint.endDate > phaseDate) {
         markers.push({
-          index: i + 1,
-          label: sorted[p].label || `vel=${sorted[p].velocity}`,
+          xLabel: format(sprint.endDate, "M/d"),
+          markerLabel: sorted[p].label || `vel=${sorted[p].velocity}`,
         })
         break
       }
@@ -102,20 +138,15 @@ function findPhaseChangeSprintIndices(
 }
 
 export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
-  const data = buildChartData(result)
-  const phaseMarkers = findPhaseChangeSprintIndices(result, velocityPhases)
-
-  // 今日のマーカー位置を特定
   const today = new Date()
-  const todayLabel = (() => {
-    for (let i = 0; i < result.standard.sprints.length; i++) {
-      const sprint = result.standard.sprints[i]
-      if (today >= sprint.startDate && today < sprint.endDate) {
-        return data[i + 1]?.label
-      }
-    }
-    return null
-  })()
+  const data = buildChartData(result, today)
+  const phaseMarkers = findPhaseChangeMarkers(result, velocityPhases)
+
+  // 今日のデータポイントが挿入済みか、もしくはスプリント境界と一致するか確認
+  const isTodayInSprints = result.standard.sprints.some(
+    (s) => today >= s.startDate && today < s.endDate
+  )
+  const todayLabel = isTodayInSprints ? format(today, "M/d") : null
 
   return (
     <Card>
@@ -178,12 +209,12 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
 
               {phaseMarkers.map((marker) => (
                 <ReferenceLine
-                  key={marker.index}
-                  x={data[marker.index]?.label ?? `S${marker.index}`}
+                  key={marker.xLabel}
+                  x={marker.xLabel}
                   stroke="#8b5cf6"
                   strokeDasharray="4 4"
                   label={{
-                    value: marker.label,
+                    value: marker.markerLabel,
                     position: "top",
                     fontSize: 11,
                     fill: "#8b5cf6",

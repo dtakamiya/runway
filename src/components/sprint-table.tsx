@@ -40,35 +40,37 @@ function ScenarioTable({
           CSVエクスポート
         </Button>
       </div>
-      <Table className="min-w-[500px]">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20">スプリント</TableHead>
-            <TableHead>期間</TableHead>
-            <TableHead className="text-right">ベロシティ (pt)</TableHead>
-            <TableHead className="text-right">消化 (pt)</TableHead>
-            <TableHead className="text-right">残り (pt)</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {scenario.sprints.map((sprint) => (
-            <TableRow key={sprint.sprintNumber}>
-              <TableCell className="font-medium">
-                S{sprint.sprintNumber}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {format(sprint.startDate, "yyyy/MM/dd")} -{" "}
-                {format(sprint.endDate, "yyyy/MM/dd")}
-              </TableCell>
-              <TableCell className="text-right">{roundPt(sprint.velocity)}</TableCell>
-              <TableCell className="text-right">{roundPt(sprint.pointsBurned)}</TableCell>
-              <TableCell className="text-right">
-                {roundPt(sprint.remainingPoints)}
-              </TableCell>
+      <div className="overflow-x-auto">
+        <Table className="min-w-[500px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">スプリント</TableHead>
+              <TableHead>期間</TableHead>
+              <TableHead className="text-right">ベロシティ (pt)</TableHead>
+              <TableHead className="text-right">消化 (pt)</TableHead>
+              <TableHead className="text-right">残り (pt)</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {scenario.sprints.map((sprint) => (
+              <TableRow key={sprint.sprintNumber}>
+                <TableCell className="font-medium">
+                  S{sprint.sprintNumber}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {format(sprint.startDate, "yyyy/MM/dd")} -{" "}
+                  {format(sprint.endDate, "yyyy/MM/dd")}
+                </TableCell>
+                <TableCell className="text-right">{roundPt(sprint.velocity)}</TableCell>
+                <TableCell className="text-right">{roundPt(sprint.pointsBurned)}</TableCell>
+                <TableCell className="text-right">
+                  {roundPt(sprint.remainingPoints)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }

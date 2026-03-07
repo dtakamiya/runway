@@ -40,4 +40,26 @@ describe("calcVelocityStats", () => {
     const stats = calcVelocityStats([10, 20, 30])
     expect(stats.count).toBe(3)
   })
+
+  it("変動係数(CV%)を正しく計算する", () => {
+    // [10, 20, 30]: average=20, stdDev≈8.16, CV = 8.16/20*100 ≈ 40.8
+    const stats = calcVelocityStats([10, 20, 30])
+    expect(stats.cv).toBeCloseTo(40.8, 0)
+  })
+
+  it("単一値の場合、CV=0", () => {
+    const stats = calcVelocityStats([15])
+    expect(stats.cv).toBe(0)
+  })
+
+  it("空配列の場合、CV=0", () => {
+    const stats = calcVelocityStats([])
+    expect(stats.cv).toBe(0)
+  })
+
+  it("安定したベロシティはCV%が低い", () => {
+    // [19, 20, 21]: stdDev≈0.82, average=20, CV≈4.1
+    const stats = calcVelocityStats([19, 20, 21])
+    expect(stats.cv).toBeLessThan(10)
+  })
 })

@@ -37,23 +37,38 @@ export function VelocityHistory({ onApply }: VelocityHistoryProps) {
       </div>
 
       {isValid && (
-        <div className="grid grid-cols-4 gap-2 text-center text-sm">
-          <div className="bg-muted rounded-md p-2">
-            <p className="text-xs text-muted-foreground">スプリント数</p>
-            <p className="font-semibold">{stats.count}</p>
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2 text-center text-sm">
+            <div className="bg-muted rounded-md p-2">
+              <p className="text-xs text-muted-foreground">スプリント数</p>
+              <p className="font-semibold">{stats.count}</p>
+            </div>
+            <div className="bg-muted rounded-md p-2">
+              <p className="text-xs text-muted-foreground">平均</p>
+              <p className="font-semibold">{stats.average}</p>
+            </div>
+            <div className="bg-muted rounded-md p-2">
+              <p className="text-xs text-muted-foreground">最小 / 最大</p>
+              <p className="font-semibold">{stats.min} / {stats.max}</p>
+            </div>
           </div>
-          <div className="bg-muted rounded-md p-2">
-            <p className="text-xs text-muted-foreground">平均</p>
-            <p className="font-semibold">{stats.average}</p>
+          <div className="grid grid-cols-2 gap-2 text-center text-sm">
+            <div className="bg-muted rounded-md p-2">
+              <p className="text-xs text-muted-foreground">標準偏差 (σ)</p>
+              <p className="font-semibold">{stats.stdDev}</p>
+            </div>
+            <div className={`rounded-md p-2 ${stats.cv >= 30 ? "bg-amber-100 dark:bg-amber-950" : "bg-muted"}`}>
+              <p className="text-xs text-muted-foreground">変動係数 (CV%)</p>
+              <p className={`font-semibold ${stats.cv >= 30 ? "text-amber-700 dark:text-amber-400" : ""}`}>
+                {stats.cv}%
+              </p>
+            </div>
           </div>
-          <div className="bg-muted rounded-md p-2">
-            <p className="text-xs text-muted-foreground">最小</p>
-            <p className="font-semibold">{stats.min}</p>
-          </div>
-          <div className="bg-muted rounded-md p-2">
-            <p className="text-xs text-muted-foreground">最大</p>
-            <p className="font-semibold">{stats.max}</p>
-          </div>
+          {stats.cv >= 30 && (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              CV% が高め（{stats.cv}%）です。不確実性バッファーを {Math.ceil(stats.cv)}% 以上に設定することを推奨します。
+            </p>
+          )}
         </div>
       )}
 

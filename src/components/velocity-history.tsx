@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { calcVelocityStats } from "@/lib/velocity-stats"
 
@@ -25,11 +26,15 @@ export function VelocityHistory({ onApply }: VelocityHistoryProps) {
 
   return (
     <div className="space-y-3">
-      <Input
-        placeholder="例: 20, 18, 22, 25 （スプリントごとのベロシティをカンマ区切りで入力）"
-        value={raw}
-        onChange={(e) => setRaw(e.target.value)}
-      />
+      <div className="space-y-1.5">
+        <Label htmlFor="velocity-history-input">過去スプリントのベロシティ</Label>
+        <Input
+          id="velocity-history-input"
+          placeholder="例: 20, 18, 22, 25 （カンマ区切り）"
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+        />
+      </div>
 
       {isValid && (
         <div className="grid grid-cols-4 gap-2 text-center text-sm">

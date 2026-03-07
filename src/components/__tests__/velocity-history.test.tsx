@@ -9,6 +9,17 @@ describe("VelocityHistory", () => {
     ).toBeInTheDocument()
   })
 
+  it("visible label が表示される", () => {
+    render(<VelocityHistory onApply={() => {}} />)
+    expect(screen.getByText("過去スプリントのベロシティ")).toBeInTheDocument()
+  })
+
+  it("label が input と htmlFor/id で紐付いている", () => {
+    render(<VelocityHistory onApply={() => {}} />)
+    const input = screen.getByLabelText("過去スプリントのベロシティ")
+    expect(input).toBeInTheDocument()
+  })
+
   it("数値を入力すると統計が表示される", () => {
     render(<VelocityHistory onApply={() => {}} />)
     const input = screen.getByPlaceholderText(/例: 20, 18, 22, 25/)

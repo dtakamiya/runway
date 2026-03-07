@@ -365,7 +365,7 @@ export default function Home() {
           )}
         </div>
 
-        {isDirty && (
+        {isDirty && !formErrors && !velocityError && (
           <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
             値が変更されました。再計算してください。
           </p>

@@ -9,6 +9,10 @@ jest.mock("next/dynamic", () => () => {
 })
 
 describe("Home (page)", () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it("計算前に空状態のプレースホルダーが表示される", () => {
     render(<Home />)
     expect(screen.getByText(/「予測を計算」を押すと/)).toBeInTheDocument()
@@ -56,6 +60,65 @@ describe("Home (page)", () => {
 
     // 「再計算してください」メッセージが表示されない
     expect(screen.queryByText(/再計算してください/)).not.toBeInTheDocument()
+  })
+
+  describe("メッセージ優先度（issue#11）", () => {
+    it("フォームバリデーションエラーがある場合、「値が変更されました」メッセージが非表示になる", () => {
+      render(<Home />)
+      // まず計算してisDirtyをfalseに
+      fireEvent.click(screen.getByText("予測を計算"))
+
+      // ストーリーポイントを負の値に変更（isDirty=true、バリデーションエラー発生条件を作る）
+      const input = screen.getByLabelText("ストーリーポイント合計")
+      fireEvent.change(input, { target: { value: "-10" } })
+
+      // 予測を計算 → バリデーションエラーが表示される
+      fireEvent.click(screen.getByText("予測を計算"))
+
+      // バリデーションエラーが表示されている
+      expect(screen.getByText(/ストーリーポイントの合計は正の数/)).toBeInTheDocument()
+
+      // 「値が変更されました」メッセージは表示されない
+      expect(screen.queryByText(/再計算してください/)).not.toBeInTheDocument()
+    })
+
+    it("velocityErrorがある場合、「値が変更されました」メッセージが非表示になる", () => {
+      render(<Home />)
+      // まず計算してisDirtyをfalseに
+      fireEvent.click(screen.getByText("予測を計算"))
+
+      // ストーリーポイントを-10に変更して計算 → formErrors発生
+      const pointsInput = screen.getByLabelText("ストーリーポイント合計")
+      fireEvent.change(pointsInput, { target: { value: "-10" } })
+      fireEvent.click(screen.getByText("予測を計算"))
+
+      // ストーリーポイントを100に戻す → formErrorsクリア、isDirty=true
+      fireEvent.change(pointsInput, { target: { value: "100" } })
+
+      // ベロシティを0に変更（placeholderで検索）
+      const velocityInput = screen.getByPlaceholderText("15")
+      fireEvent.change(velocityInput, { target: { value: "0" } })
+
+      // 予測を計算 → velocityErrorが表示される
+      fireEvent.click(screen.getByText("予測を計算"))
+
+      // velocityErrorが表示されている
+      expect(screen.getByText(/すべてのベロシティは正の数/)).toBeInTheDocument()
+
+      // 「値が変更されました」メッセージは表示されない
+      expect(screen.queryByText(/再計算してください/)).not.toBeInTheDocument()
+    })
+
+    it("エラーがない状態でisDirtyの場合、「値が変更されました」メッセージが表示される", () => {
+      render(<Home />)
+      // 計算してからストーリーポイントを変更
+      fireEvent.click(screen.getByText("予測を計算"))
+      const input = screen.getByLabelText("ストーリーポイント合計")
+      fireEvent.change(input, { target: { value: "200" } })
+
+      // 「値が変更されました」メッセージが表示される
+      expect(screen.getByText(/再計算してください/)).toBeInTheDocument()
+    })
   })
 
   describe("URLをコピーボタン（handleShare）", () => {

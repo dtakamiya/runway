@@ -309,7 +309,7 @@ export default function Home() {
         <Button
           onClick={handleCalculate}
           className={`w-full transition-all ${
-            isDirty ? "animate-pulse ring-2 ring-offset-2 ring-primary" : ""
+            isDirty ? "animate-pulse motion-reduce:animate-none ring-2 ring-offset-2 ring-primary" : ""
           }`}
           size="lg"
         >
@@ -327,7 +327,7 @@ export default function Home() {
         )}
 
         {result && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none motion-reduce:transition-none">
             <Separator />
             <ForecastResultCards
               result={result}

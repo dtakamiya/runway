@@ -16,14 +16,31 @@ export type PhaseFormData = {
 type VelocityPhasesProps = {
   readonly phases: readonly PhaseFormData[]
   readonly onChange: (phases: readonly PhaseFormData[]) => void
+  readonly sprintDays?: number
 }
 
-export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
+function formatDateString(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+export function VelocityPhases({ phases, onChange, sprintDays }: VelocityPhasesProps) {
   const addPhase = () => {
     const lastPhase = phases[phases.length - 1]
+
+    let defaultFromDate = ""
+    if (lastPhase?.fromDate && sprintDays && sprintDays > 0) {
+      const [year, month, day] = lastPhase.fromDate.split("-").map(Number)
+      const date = new Date(year, month - 1, day)
+      date.setDate(date.getDate() + sprintDays * 2)
+      defaultFromDate = formatDateString(date)
+    }
+
     const newPhase: PhaseFormData = {
       id: crypto.randomUUID(),
-      fromDate: "",
+      fromDate: defaultFromDate,
       velocity: lastPhase ? lastPhase.velocity : "",
       label: "",
     }

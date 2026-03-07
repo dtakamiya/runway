@@ -266,7 +266,7 @@ export default function Home() {
         )}
 
         <ForecastForm data={formData} onChange={handleFormChange} />
-        <VelocityPhases phases={phases} onChange={handlePhasesChange} />
+        <VelocityPhases phases={phases} onChange={handlePhasesChange} sprintDays={Number(formData.sprintDays) || undefined} />
 
         <div className="border rounded-lg overflow-hidden">
           <button

@@ -18,12 +18,20 @@ const mockResult: ForecastResult = {
 }
 
 describe("SprintTable", () => {
-  it("タブラベルに「スプリント」と表示される（英語の Sprint ではない）", () => {
+  it("タブラベルに英語の Sprint が使われない", () => {
     render(<SprintTable result={mockResult} />)
     const tabs = screen.getAllByRole("tab")
     tabs.forEach((tab) => {
       expect(tab.textContent).not.toMatch(/\bSprint\b/)
-      expect(tab.textContent).toMatch(/スプリント/)
+    })
+  })
+
+  it("タブラベルにスプリント数が表示される", () => {
+    render(<SprintTable result={mockResult} />)
+    const tabs = screen.getAllByRole("tab")
+    const counts = [4, 5, 7]
+    tabs.forEach((tab, i) => {
+      expect(tab.textContent).toMatch(new RegExp(String(counts[i])))
     })
   })
 

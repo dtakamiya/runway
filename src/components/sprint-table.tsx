@@ -75,6 +75,27 @@ function ScenarioTable({
   )
 }
 
+const TAB_CONFIGS = [
+  {
+    value: "highVelocity" as const,
+    label: "好調",
+    dot: "bg-green-500",
+    activeText: "data-[state=active]:text-green-600",
+  },
+  {
+    value: "standard" as const,
+    label: "標準",
+    dot: "bg-blue-500",
+    activeText: "data-[state=active]:text-blue-600",
+  },
+  {
+    value: "lowVelocity" as const,
+    label: "不調",
+    dot: "bg-orange-500",
+    activeText: "data-[state=active]:text-orange-600",
+  },
+] as const
+
 export function SprintTable({ result }: SprintTableProps) {
   return (
     <Card>
@@ -84,25 +105,25 @@ export function SprintTable({ result }: SprintTableProps) {
       <CardContent>
         <Tabs defaultValue="standard">
           <TabsList>
-            <TabsTrigger value="highVelocity">
-              好調 ({result.highVelocity.sprintCount} スプリント)
-            </TabsTrigger>
-            <TabsTrigger value="standard">
-              標準 ({result.standard.sprintCount} スプリント)
-            </TabsTrigger>
-            <TabsTrigger value="lowVelocity">
-              不調 ({result.lowVelocity.sprintCount} スプリント)
-            </TabsTrigger>
+            {TAB_CONFIGS.map((config) => (
+              <TabsTrigger
+                key={config.value}
+                value={config.value}
+                className={`gap-1.5 ${config.activeText}`}
+              >
+                <span className={`inline-block h-2 w-2 rounded-full ${config.dot}`} />
+                {config.label}
+                <span className="text-xs opacity-60">
+                  ({result[config.value].sprintCount})
+                </span>
+              </TabsTrigger>
+            ))}
           </TabsList>
-          <TabsContent value="highVelocity">
-            <ScenarioTable scenario={result.highVelocity} label="好調" />
-          </TabsContent>
-          <TabsContent value="standard">
-            <ScenarioTable scenario={result.standard} label="標準" />
-          </TabsContent>
-          <TabsContent value="lowVelocity">
-            <ScenarioTable scenario={result.lowVelocity} label="不調" />
-          </TabsContent>
+          {TAB_CONFIGS.map((config) => (
+            <TabsContent key={config.value} value={config.value}>
+              <ScenarioTable scenario={result[config.value]} label={config.label} />
+            </TabsContent>
+          ))}
         </Tabs>
       </CardContent>
     </Card>

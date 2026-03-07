@@ -70,7 +70,7 @@ export default function Home() {
   const [formErrors, setFormErrors] = useState<FormErrors | null>(null)
   const [velocityError, setVelocityError] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState(false)
-  const [restoredFromStorage, setRestoredFromStorage] = useState(false)
+  const [restoredFromStorage, setRestoredFromStorage] = useState<'storage' | 'url' | null>(null)
   const [copySuccess, setCopySuccess] = useState(false)
   const [showVelocityHistory, setShowVelocityHistory] = useState(false)
   const [showCompletedSprints, setShowCompletedSprints] = useState(false)
@@ -90,7 +90,7 @@ export default function Home() {
         if (decoded.completedSprints && decoded.completedSprints.length > 0) {
           setCompletedSprintForms(decoded.completedSprints.map((s) => ({ ...s, id: s.id || crypto.randomUUID() })))
         }
-        setRestoredFromStorage(true)
+        setRestoredFromStorage('url')
         return
       }
     }
@@ -103,7 +103,7 @@ export default function Home() {
       if (saved.completedSprints && saved.completedSprints.length > 0) {
         setCompletedSprintForms(saved.completedSprints.map((s) => ({ ...s, id: s.id || crypto.randomUUID() })))
       }
-      setRestoredFromStorage(true)
+      setRestoredFromStorage('storage')
     } else {
       // 保存データがない場合でも再レンダリングを促し、Selectを正しく表示する
       setFormData({ ...initialFormData })
@@ -274,9 +274,9 @@ export default function Home() {
 
         <Separator />
 
-        {restoredFromStorage && (
+        {restoredFromStorage !== null && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
-            <span>前回の入力内容を復元しました</span>
+            <span>{restoredFromStorage === 'url' ? '共有URLから設定を復元しました' : '前回の入力内容を復元しました'}</span>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="ml-auto text-xs underline hover:text-foreground cursor-pointer">
@@ -298,7 +298,7 @@ export default function Home() {
                       setPhases(initialPhases)
                       setCompletedSprintForms([])
                       setResult(null)
-                      setRestoredFromStorage(false)
+                      setRestoredFromStorage(null)
                     }}
                   >
                     リセットする

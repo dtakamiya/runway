@@ -33,3 +33,8 @@ export type ForecastResult = {
   readonly standard: Scenario
   readonly pessimistic: Scenario
 }
+
+export type CompletedSprint = {
+  readonly sprintNumber: number
+  readonly actualPoints: number
+}

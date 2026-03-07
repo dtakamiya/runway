@@ -5,7 +5,13 @@ import type {
   Scenario,
   SprintBreakdown,
   VelocityPhase,
+  CompletedSprint,
 } from "./types"
+
+export type ActualBurndownPoint = {
+  readonly sprintIndex: number
+  readonly remaining: number
+}
 
 function getVelocityForSprint(
   sprintStartDate: Date,
@@ -115,6 +121,42 @@ export function getIdealRemainingAtDate(
     (sprint.endDate.getTime() - sprint.startDate.getTime())
   const startRemaining = sprint.remainingPoints + sprint.pointsBurned
   return startRemaining - fraction * sprint.pointsBurned
+}
+
+export function buildActualBurndown(
+  totalPoints: number,
+  completedSprints: readonly CompletedSprint[],
+  _standardSprints: readonly SprintBreakdown[]
+): readonly ActualBurndownPoint[] {
+  const points: ActualBurndownPoint[] = [{ sprintIndex: 0, remaining: totalPoints }]
+  let remaining = totalPoints
+  for (const sprint of completedSprints) {
+    remaining = Math.max(0, remaining - sprint.actualPoints)
+    points.push({ sprintIndex: sprint.sprintNumber, remaining })
+  }
+  return points
+}
+
+export function calculateDelayDays(
+  totalPoints: number,
+  completedSprints: readonly CompletedSprint[],
+  standard: Scenario,
+  sprintDays: number
+): number {
+  if (completedSprints.length === 0) return 0
+
+  const lastIdx = completedSprints.length - 1
+  const actualRemaining = Math.max(
+    0,
+    totalPoints - completedSprints.reduce((sum, s) => sum + s.actualPoints, 0)
+  )
+  const plannedRemaining = standard.sprints[lastIdx]?.remainingPoints ?? totalPoints
+  const pointsBehind = actualRemaining - plannedRemaining
+
+  // 最後の完了スプリントの標準ベロシティで日数に換算
+  const velocity = standard.sprints[lastIdx]?.velocity ?? 1
+  const delayDays = Math.round((pointsBehind / velocity) * sprintDays)
+  return delayDays
 }
 
 export function calculateForecast(input: ForecastInput): ForecastResult {

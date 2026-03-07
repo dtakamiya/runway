@@ -28,8 +28,9 @@ import { calculateForecast } from "@/lib/forecast"
 import { saveState, loadState } from "@/lib/storage"
 import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
+import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
 import { Link, ChevronDown, ChevronUp } from "lucide-react"
-import type { ForecastInput, ForecastResult, VelocityPhase } from "@/lib/types"
+import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 
 const BurndownChart = dynamic(
   () =>
@@ -71,6 +72,8 @@ export default function Home() {
   const [restoredFromStorage, setRestoredFromStorage] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
   const [showVelocityHistory, setShowVelocityHistory] = useState(false)
+  const [showCompletedSprints, setShowCompletedSprints] = useState(false)
+  const [completedSprintForms, setCompletedSprintForms] = useState<readonly CompletedSprintFormData[]>([])
 
   // 初回マウント時: URLパラメータ優先、次にlocalStorage
   useEffect(() => {
@@ -81,6 +84,9 @@ export default function Home() {
       if (decoded) {
         setFormData({ ...initialFormData, ...decoded.formData })
         if (decoded.phases.length > 0) setPhases(decoded.phases)
+        if (decoded.completedSprints && decoded.completedSprints.length > 0) {
+          setCompletedSprintForms(decoded.completedSprints)
+        }
         setRestoredFromStorage(true)
         return
       }
@@ -89,19 +95,27 @@ export default function Home() {
     if (saved) {
       setFormData({ ...initialFormData, ...saved.formData })
       if (saved.phases.length > 0) setPhases(saved.phases)
+      if (saved.completedSprints && saved.completedSprints.length > 0) {
+        setCompletedSprintForms(saved.completedSprints)
+      }
       setRestoredFromStorage(true)
     }
   }, [])
 
   // 状態が変わるたびにlocalStorageに保存
   useEffect(() => {
-    saveState({ formData, phases: phases as PhaseFormData[] })
-  }, [formData, phases])
+    saveState({
+      formData,
+      phases: phases as PhaseFormData[],
+      completedSprints: completedSprintForms as CompletedSprintFormData[],
+    })
+  }, [formData, phases, completedSprintForms])
 
   const handleShare = async () => {
     const encoded = encodeState({
       formData,
       phases: phases as PhaseFormData[],
+      completedSprints: completedSprintForms as CompletedSprintFormData[],
     })
     const url = `${window.location.origin}${window.location.pathname}?s=${encoded}`
     await navigator.clipboard.writeText(url)
@@ -128,6 +142,15 @@ export default function Home() {
     setResult(null)
     setIsDirty(true)
   }
+
+  const completedSprints: readonly CompletedSprint[] = useMemo(() => {
+    return completedSprintForms
+      .map((s, idx) => ({
+        sprintNumber: idx + 1,
+        actualPoints: Number(s.actualPoints) || 0,
+      }))
+      .filter((s) => s.actualPoints > 0)
+  }, [completedSprintForms])
 
   const velocityPhases: readonly VelocityPhase[] = useMemo(() => {
     return phases
@@ -260,6 +283,7 @@ export default function Home() {
                     onClick={() => {
                       setFormData(initialFormData)
                       setPhases(initialPhases)
+                      setCompletedSprintForms([])
                       setResult(null)
                       setRestoredFromStorage(false)
                     }}
@@ -300,6 +324,41 @@ export default function Home() {
           )}
         </div>
 
+        <div className="border rounded-lg overflow-hidden">
+          <button
+            type="button"
+            aria-expanded={showCompletedSprints}
+            aria-controls="completed-sprints-panel"
+            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={() => setShowCompletedSprints((v) => !v)}
+          >
+            <span>
+              実績入力
+              {completedSprintForms.length > 0 && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({completedSprintForms.length}スプリント入力済み)
+                </span>
+              )}
+            </span>
+            {showCompletedSprints ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+          {showCompletedSprints && (
+            <div id="completed-sprints-panel" className="px-4 py-3">
+              <CompletedSprints
+                sprints={completedSprintForms}
+                onChange={setCompletedSprintForms}
+                startDate={formData.startDate || undefined}
+                sprintDays={Number(formData.sprintDays) || 14}
+                totalPoints={Number(formData.totalPoints) || undefined}
+              />
+            </div>
+          )}
+        </div>
+
         {isDirty && (
           <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
             値が変更されました。再計算してください。
@@ -333,7 +392,13 @@ export default function Home() {
               result={result}
               deadline={formData.deadline || undefined}
             />
-            <BurndownChart result={result} velocityPhases={velocityPhases} deadline={formData.deadline || undefined} />
+            <BurndownChart
+              result={result}
+              velocityPhases={velocityPhases}
+              deadline={formData.deadline || undefined}
+              completedSprints={completedSprints}
+              totalPoints={Number(formData.totalPoints) || undefined}
+            />
             <SprintTable result={result} />
           </div>
         )}

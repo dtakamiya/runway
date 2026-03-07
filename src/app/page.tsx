@@ -271,7 +271,7 @@ export default function Home() {
         <div className="border rounded-lg overflow-hidden">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
             onClick={() => setShowVelocityHistory((v) => !v)}
           >
             <span>過去のベロシティから計算</span>

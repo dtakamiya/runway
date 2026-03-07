@@ -1,4 +1,4 @@
-import { calculateForecast, getIdealRemainingAtDate } from "../forecast"
+import { calculateForecast, getIdealRemainingAtDate, snapToSprintStart } from "../forecast"
 import type { ForecastInput } from "../types"
 
 describe("calculateForecast", () => {
@@ -145,5 +145,38 @@ describe("getIdealRemainingAtDate", () => {
     const lastSprint = result.standard.sprints[result.standard.sprints.length - 1]
     const val = getIdealRemainingAtDate(result.standard.sprints, lastSprint.endDate)
     expect(val).toBeNull()
+  })
+})
+
+describe("snapToSprintStart", () => {
+  // スプリント開始日: 3/10, 3/24, 4/7, 4/21...（14日間隔）
+  const sprintStart = new Date("2026-03-10")
+  const sprintDays = 14
+
+  it("スプリント開始日ぴったりの場合はそのままの日付を返す", () => {
+    expect(snapToSprintStart(new Date("2026-03-10"), sprintStart, sprintDays))
+      .toEqual(new Date("2026-03-10"))
+  })
+
+  it("スプリント途中の日付は次のスプリント開始日にスナップする", () => {
+    // 3/15 は S1(3/10-3/24)の途中 → 次のスプリント開始日 3/24 へ
+    expect(snapToSprintStart(new Date("2026-03-15"), sprintStart, sprintDays))
+      .toEqual(new Date("2026-03-24"))
+  })
+
+  it("スプリント2の開始日ぴったりはそのまま返す", () => {
+    expect(snapToSprintStart(new Date("2026-03-24"), sprintStart, sprintDays))
+      .toEqual(new Date("2026-03-24"))
+  })
+
+  it("スプリント3の途中の日付はスプリント4の開始日にスナップする", () => {
+    // 4/10 は S3(4/7-4/21)の途中 → 4/21 へ
+    expect(snapToSprintStart(new Date("2026-04-10"), sprintStart, sprintDays))
+      .toEqual(new Date("2026-04-21"))
+  })
+
+  it("スプリント開始前の日付は最初のスプリント開始日を返す", () => {
+    expect(snapToSprintStart(new Date("2026-03-05"), sprintStart, sprintDays))
+      .toEqual(new Date("2026-03-10"))
   })
 })

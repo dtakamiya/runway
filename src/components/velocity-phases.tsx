@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2 } from "lucide-react"
+import { snapToSprintStart } from "@/lib/forecast"
 
 export type PhaseFormData = {
   readonly id: string
@@ -17,6 +18,7 @@ type VelocityPhasesProps = {
   readonly phases: readonly PhaseFormData[]
   readonly onChange: (phases: readonly PhaseFormData[]) => void
   readonly sprintDays?: number
+  readonly startDate?: string
 }
 
 function formatDateString(date: Date): string {
@@ -26,7 +28,7 @@ function formatDateString(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export function VelocityPhases({ phases, onChange, sprintDays }: VelocityPhasesProps) {
+export function VelocityPhases({ phases, onChange, sprintDays, startDate }: VelocityPhasesProps) {
   const addPhase = () => {
     const lastPhase = phases[phases.length - 1]
 
@@ -61,6 +63,19 @@ export function VelocityPhases({ phases, onChange, sprintDays }: VelocityPhasesP
     )
   }
 
+  const snapPhaseDate = (id: string, index: number, value: string) => {
+    if (index === 0 || !value || !startDate || !sprintDays || sprintDays <= 0) return
+    const [sy, sm, sd] = startDate.split("-").map(Number)
+    const sprintStartDate = new Date(sy, sm - 1, sd)
+    const [py, pm, pd] = value.split("-").map(Number)
+    const phaseDate = new Date(py, pm - 1, pd)
+    const snapped = snapToSprintStart(phaseDate, sprintStartDate, sprintDays)
+    const snappedStr = formatDateString(snapped)
+    if (snappedStr !== value) {
+      onChange(phases.map((p) => (p.id === id ? { ...p, fromDate: snappedStr } : p)))
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -71,6 +86,11 @@ export function VelocityPhases({ phases, onChange, sprintDays }: VelocityPhasesP
             フェーズを追加
           </Button>
         </CardTitle>
+        {phases.length > 1 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            フェーズ変更日はスプリント開始日単位で適用されます。入力後にスプリント開始日へ自動調整されます。
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         {phases.map((phase, index) => (
@@ -86,6 +106,7 @@ export function VelocityPhases({ phases, onChange, sprintDays }: VelocityPhasesP
                   onChange={(e) =>
                     updatePhase(phase.id, "fromDate", e.target.value)
                   }
+                  onBlur={(e) => snapPhaseDate(phase.id, index, e.target.value)}
                 />
               </div>
               <div>

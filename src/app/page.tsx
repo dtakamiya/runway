@@ -30,7 +30,7 @@ import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
 import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Link, ChevronDown, ChevronUp } from "lucide-react"
+import { Link, ChevronDown, ChevronUp, BarChart2 } from "lucide-react"
 import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 
 const BurndownChart = dynamic(
@@ -390,8 +390,10 @@ export default function Home() {
 
         {!result && (
           <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center text-muted-foreground">
-            <p className="text-sm leading-relaxed">
-              「予測を計算」を押すと
+            <BarChart2 className="mx-auto mb-3 h-10 w-10 opacity-40" />
+            <p className="text-sm font-medium mb-1">完了予測を確認しましょう</p>
+            <p className="text-xs leading-relaxed opacity-75">
+              上の「予測を計算」ボタンを押すと
               <br />
               完了予測日・バーンダウンチャートが表示されます
             </p>

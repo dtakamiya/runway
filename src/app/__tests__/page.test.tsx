@@ -15,13 +15,13 @@ describe("Home (page)", () => {
 
   it("計算前に空状態のプレースホルダーが表示される", () => {
     render(<Home />)
-    expect(screen.getByText(/「予測を計算」を押すと/)).toBeInTheDocument()
+    expect(screen.getByText(/完了予測を確認しましょう/)).toBeInTheDocument()
   })
 
   it("計算後にプレースホルダーが非表示になる", () => {
     render(<Home />)
     fireEvent.click(screen.getByText("予測を計算"))
-    expect(screen.queryByText(/「予測を計算」を押すと/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/完了予測を確認しましょう/)).not.toBeInTheDocument()
   })
 
   it("値を変更後、ボタンに animate-pulse クラスが付く", () => {
@@ -43,7 +43,7 @@ describe("Home (page)", () => {
     render(<Home />)
     // 先に計算を実行して結果を表示
     fireEvent.click(screen.getByText("予測を計算"))
-    expect(screen.queryByText(/「予測を計算」を押すと/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/完了予測を確認しましょう/)).not.toBeInTheDocument()
 
     // 「過去のベロシティから計算」セクションを展開
     fireEvent.click(screen.getByText("過去のベロシティから計算"))
@@ -56,7 +56,7 @@ describe("Home (page)", () => {
     fireEvent.click(screen.getByText("この値を使う"))
 
     // 計算結果が消えていない（プレースホルダーが表示されていない）
-    expect(screen.queryByText(/「予測を計算」を押すと/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/完了予測を確認しましょう/)).not.toBeInTheDocument()
 
     // 「再計算してください」メッセージが表示されない
     expect(screen.queryByText(/再計算してください/)).not.toBeInTheDocument()

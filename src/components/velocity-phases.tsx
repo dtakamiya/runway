@@ -19,6 +19,7 @@ type VelocityPhasesProps = {
   readonly onChange: (phases: readonly PhaseFormData[]) => void
   readonly sprintDays?: number
   readonly startDate?: string
+  readonly velocityError?: string
 }
 
 function formatDateString(date: Date): string {
@@ -28,7 +29,7 @@ function formatDateString(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export function VelocityPhases({ phases, onChange, sprintDays, startDate }: VelocityPhasesProps) {
+export function VelocityPhases({ phases, onChange, sprintDays, startDate, velocityError }: VelocityPhasesProps) {
   const addPhase = () => {
     const lastPhase = phases[phases.length - 1]
 
@@ -163,6 +164,9 @@ export function VelocityPhases({ phases, onChange, sprintDays, startDate }: Velo
           <p className="text-sm text-muted-foreground text-center py-4">
             予測を開始するには少なくとも1つのベロシティフェーズを追加してください。
           </p>
+        )}
+        {velocityError && (
+          <p className="text-xs text-destructive">{velocityError}</p>
         )}
       </CardContent>
     </Card>

@@ -20,12 +20,18 @@ export type FormData = {
   readonly deadline: string
 }
 
+export type FormErrors = {
+  readonly totalPoints?: string
+  readonly startDate?: string
+}
+
 type ForecastFormProps = {
   readonly data: FormData
   readonly onChange: (data: FormData) => void
+  readonly errors?: FormErrors
 }
 
-export function ForecastForm({ data, onChange }: ForecastFormProps) {
+export function ForecastForm({ data, onChange, errors }: ForecastFormProps) {
   const update = (field: keyof FormData, value: string) => {
     onChange({ ...data, [field]: value })
   }
@@ -47,6 +53,9 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
               value={data.totalPoints}
               onChange={(e) => update("totalPoints", e.target.value)}
             />
+            {errors?.totalPoints && (
+              <p className="text-xs text-destructive">{errors.totalPoints}</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="startDate">開始日</Label>
@@ -56,6 +65,9 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
               value={data.startDate}
               onChange={(e) => update("startDate", e.target.value)}
             />
+            {errors?.startDate && (
+              <p className="text-xs text-destructive">{errors.startDate}</p>
+            )}
           </div>
         </div>
 

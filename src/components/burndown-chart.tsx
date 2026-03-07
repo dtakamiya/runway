@@ -36,9 +36,9 @@ function interpolateRemaining(
   sprints: readonly SprintBreakdown[],
   idx: number,
   fraction: number
-): number {
+): number | undefined {
   const sprint = sprints[idx]
-  if (!sprint) return 0
+  if (!sprint) return undefined
   const startRemaining = sprint.remainingPoints + sprint.pointsBurned
   return roundPt(startRemaining - fraction * sprint.pointsBurned)
 }

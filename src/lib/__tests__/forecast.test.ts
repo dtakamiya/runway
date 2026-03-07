@@ -1,4 +1,4 @@
-import { calculateForecast } from "../forecast"
+import { calculateForecast, getIdealRemainingAtDate } from "../forecast"
 import type { ForecastInput } from "../types"
 
 describe("calculateForecast", () => {
@@ -94,5 +94,56 @@ describe("calculateForecast", () => {
     expect(result.standard.sprints[0].velocity).toBe(15)
     expect(result.standard.sprints[1].velocity).toBe(15)
     expect(result.standard.sprints[2].velocity).toBe(25)
+  })
+})
+
+describe("getIdealRemainingAtDate", () => {
+  // S1: 03/10-03/24, vel=15, remaining=85
+  // S2: 03/24-04/07, vel=15, remaining=70
+  // S3: 04/07-04/21, vel=25, remaining=45
+  const baseInput: ForecastInput = {
+    totalPoints: 100,
+    startDate: new Date("2026-03-10"),
+    sprintDays: 14,
+    velocityPhases: [
+      { fromDate: new Date("2026-03-10"), velocity: 15 },
+      { fromDate: new Date("2026-04-01"), velocity: 25 },
+    ],
+    bufferPercent: 0,
+  }
+
+  it("returns totalPoints at sprint start date (fraction=0)", () => {
+    const result = calculateForecast(baseInput)
+    const val = getIdealRemainingAtDate(result.standard.sprints, new Date("2026-03-10"))
+    expect(val).toBe(100)
+  })
+
+  it("interpolates correctly at sprint midpoint", () => {
+    const result = calculateForecast(baseInput)
+    // S1 midpoint: 03/17 (7 days into 14-day sprint)
+    // startRemaining=100, burned=0.5*15=7.5 => 92.5
+    const val = getIdealRemainingAtDate(result.standard.sprints, new Date("2026-03-17"))
+    expect(val).toBe(92.5)
+  })
+
+  it("returns remainingPoints at sprint end date (fraction=1)", () => {
+    const result = calculateForecast(baseInput)
+    // S1 end (=S2 start): 03/24 -> falls in S2, fraction=0
+    // startRemaining = 70+15 = 85, burned = 0 => 85
+    const val = getIdealRemainingAtDate(result.standard.sprints, new Date("2026-03-24"))
+    expect(val).toBe(85)
+  })
+
+  it("returns null when date is before all sprints", () => {
+    const result = calculateForecast(baseInput)
+    const val = getIdealRemainingAtDate(result.standard.sprints, new Date("2026-03-09"))
+    expect(val).toBeNull()
+  })
+
+  it("returns null when date is after all sprints", () => {
+    const result = calculateForecast(baseInput)
+    const lastSprint = result.standard.sprints[result.standard.sprints.length - 1]
+    const val = getIdealRemainingAtDate(result.standard.sprints, lastSprint.endDate)
+    expect(val).toBeNull()
   })
 })

@@ -9,12 +9,14 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  ReferenceDot,
   Legend,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import type { ForecastResult, SprintBreakdown, VelocityPhase } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
+import { getIdealRemainingAtDate } from "@/lib/forecast"
 
 type BurndownChartProps = {
   readonly result: ForecastResult
@@ -183,6 +185,12 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
   )
   const todayLabel = isTodayInSprints ? format(today, "M/d") : null
 
+  // 今日時点の標準シナリオ理想残ポイント
+  const idealRemainingRaw = isTodayInSprints
+    ? getIdealRemainingAtDate(result.standard.sprints, today)
+    : null
+  const idealRemaining = idealRemainingRaw !== null ? Math.round(idealRemainingRaw) : null
+
   // デッドラインのデータポイントがチャートデータに存在するか確認
   const deadlineLabel = deadlineDate && data.some((d) => d.label === format(deadlineDate, "M/d"))
     ? format(deadlineDate, "M/d")
@@ -191,7 +199,14 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">バーンダウンチャート</CardTitle>
+        <div className="flex items-center gap-3">
+          <CardTitle className="text-base">バーンダウンチャート</CardTitle>
+          {idealRemaining !== null && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              今日の理想残: <strong className="text-foreground">{idealRemaining} pt</strong>
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[350px] w-full">
@@ -244,6 +259,17 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
                     fontSize: 11,
                     fill: "#64748b",
                   }}
+                />
+              )}
+
+              {todayLabel && idealRemaining !== null && (
+                <ReferenceDot
+                  x={todayLabel}
+                  y={idealRemaining}
+                  r={6}
+                  fill="#3b82f6"
+                  stroke="white"
+                  strokeWidth={2}
                 />
               )}
 

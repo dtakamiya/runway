@@ -89,6 +89,23 @@ function applyBuffer(
   }))
 }
 
+export function getIdealRemainingAtDate(
+  sprints: readonly SprintBreakdown[],
+  date: Date
+): number | null {
+  const idx = sprints.findIndex(
+    (s) => date >= s.startDate && date < s.endDate
+  )
+  if (idx < 0) return null
+
+  const sprint = sprints[idx]
+  const fraction =
+    (date.getTime() - sprint.startDate.getTime()) /
+    (sprint.endDate.getTime() - sprint.startDate.getTime())
+  const startRemaining = sprint.remainingPoints + sprint.pointsBurned
+  return startRemaining - fraction * sprint.pointsBurned
+}
+
 export function calculateForecast(input: ForecastInput): ForecastResult {
   const { totalPoints, startDate, sprintDays, velocityPhases, bufferPercent } =
     input

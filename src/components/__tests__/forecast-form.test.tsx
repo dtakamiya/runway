@@ -10,11 +10,10 @@ const defaultData = {
 }
 
 describe("ForecastForm", () => {
-  it("バッファーの説明テキストが簡潔に表示される", () => {
+  it("バッファーの説明テキストが表示される", () => {
     render(<ForecastForm data={defaultData} onChange={() => {}} />)
-    const hint = screen.getByText(/vel -20%/)
-    expect(hint).toBeInTheDocument()
-    expect(screen.queryByText(/低下し、総ポイントが/)).not.toBeInTheDocument()
+    expect(screen.getByText(/不調シナリオでは、ベロシティを/)).toBeInTheDocument()
+    expect(screen.getByText(/低下させて計算します/)).toBeInTheDocument()
   })
 
   it("バッファー0の場合、説明テキストが非表示", () => {

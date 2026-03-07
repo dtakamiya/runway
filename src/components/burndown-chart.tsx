@@ -12,13 +12,14 @@ import {
   Legend,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import type { ForecastResult, SprintBreakdown, VelocityPhase } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
 
 type BurndownChartProps = {
   readonly result: ForecastResult
   readonly velocityPhases: readonly VelocityPhase[]
+  readonly deadline?: string
 }
 
 type ChartDataPoint = {
@@ -40,9 +41,16 @@ function interpolateRemaining(
   return roundPt(startRemaining - fraction * sprint.pointsBurned)
 }
 
+type SpecialPoint = {
+  readonly date: Date
+  readonly label: string
+  readonly sprintNum: string
+}
+
 function buildChartData(
   result: ForecastResult,
-  today: Date
+  today: Date,
+  deadline?: Date
 ): readonly ChartDataPoint[] {
   const maxSprints = Math.max(
     result.optimistic.sprintCount,
@@ -86,21 +94,47 @@ function buildChartData(
     })
   }
 
-  // 今日がスプリント期間内なら今日のデータポイントを挿入
-  const sprintIdx = result.standard.sprints.findIndex(
+  // 今日・デッドラインのデータポイントを収集し、日付昇順で挿入
+  const specialPoints: SpecialPoint[] = []
+
+  const todaySprintIdx = result.standard.sprints.findIndex(
     (s) => today >= s.startDate && today < s.endDate
   )
-  if (sprintIdx >= 0) {
+  if (todaySprintIdx >= 0) {
+    specialPoints.push({ date: today, label: format(today, "M/d"), sprintNum: "今日" })
+  }
+
+  if (deadline) {
+    const dlSprintIdx = result.standard.sprints.findIndex(
+      (s) => deadline >= s.startDate && deadline < s.endDate
+    )
+    if (dlSprintIdx >= 0) {
+      specialPoints.push({ date: deadline, label: format(deadline, "M/d"), sprintNum: "DL" })
+    }
+  }
+
+  specialPoints.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+  for (const sp of specialPoints) {
+    if (data.some((d) => d.label === sp.label)) continue
+
+    const sprintIdx = result.standard.sprints.findIndex(
+      (s) => sp.date >= s.startDate && sp.date < s.endDate
+    )
+    if (sprintIdx < 0) continue
+
     const stdSprint = result.standard.sprints[sprintIdx]
-    const todayLabel = format(today, "M/d")
-    const alreadyExists = data.some((d) => d.label === todayLabel)
-    if (!alreadyExists) {
-      const fraction =
-        (today.getTime() - stdSprint.startDate.getTime()) /
-        (stdSprint.endDate.getTime() - stdSprint.startDate.getTime())
-      data.splice(sprintIdx + 1, 0, {
-        label: todayLabel,
-        sprintNum: "今日",
+    const fraction =
+      (sp.date.getTime() - stdSprint.startDate.getTime()) /
+      (stdSprint.endDate.getTime() - stdSprint.startDate.getTime())
+
+    // スプリント終了日ラベルの直前に挿入
+    const sprintEndLabel = format(result.standard.sprints[sprintIdx].endDate, "M/d")
+    const insertIdx = data.findIndex((d) => d.label === sprintEndLabel)
+    if (insertIdx >= 0) {
+      data.splice(insertIdx, 0, {
+        label: sp.label,
+        sprintNum: sp.sprintNum,
         optimistic: interpolateRemaining(result.optimistic.sprints, sprintIdx, fraction),
         standard: interpolateRemaining(result.standard.sprints, sprintIdx, fraction),
         pessimistic: interpolateRemaining(result.pessimistic.sprints, sprintIdx, fraction),
@@ -137,16 +171,22 @@ function findPhaseChangeMarkers(
   return markers
 }
 
-export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
+export function BurndownChart({ result, velocityPhases, deadline }: BurndownChartProps) {
   const today = new Date()
-  const data = buildChartData(result, today)
+  const deadlineDate = deadline ? parseISO(deadline) : undefined
+  const data = buildChartData(result, today, deadlineDate)
   const phaseMarkers = findPhaseChangeMarkers(result, velocityPhases)
 
-  // 今日のデータポイントが挿入済みか、もしくはスプリント境界と一致するか確認
+  // 今日のデータポイントがチャートデータに存在するか確認
   const isTodayInSprints = result.standard.sprints.some(
     (s) => today >= s.startDate && today < s.endDate
   )
   const todayLabel = isTodayInSprints ? format(today, "M/d") : null
+
+  // デッドラインのデータポイントがチャートデータに存在するか確認
+  const deadlineLabel = deadlineDate && data.some((d) => d.label === format(deadlineDate, "M/d"))
+    ? format(deadlineDate, "M/d")
+    : null
 
   return (
     <Card>
@@ -203,6 +243,20 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
                     position: "top",
                     fontSize: 11,
                     fill: "#64748b",
+                  }}
+                />
+              )}
+
+              {deadlineLabel && (
+                <ReferenceLine
+                  x={deadlineLabel}
+                  stroke="#ef4444"
+                  strokeDasharray="6 3"
+                  label={{
+                    value: `DL: ${deadlineLabel}`,
+                    position: "top",
+                    fontSize: 11,
+                    fill: "#ef4444",
                   }}
                 />
               )}

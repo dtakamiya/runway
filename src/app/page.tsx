@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
 import { parseISO } from "date-fns"
-import { ForecastForm, type FormData } from "@/components/forecast-form"
+import { ForecastForm, type FormData, type FormErrors } from "@/components/forecast-form"
 import {
   VelocityPhases,
   type PhaseFormData,
@@ -65,7 +65,8 @@ export default function Home() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [phases, setPhases] = useState<readonly PhaseFormData[]>(initialPhases)
   const [result, setResult] = useState<ForecastResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<FormErrors | null>(null)
+  const [velocityError, setVelocityError] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState(false)
   const [restoredFromStorage, setRestoredFromStorage] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
@@ -110,6 +111,7 @@ export default function Home() {
 
   const handleFormChange = (data: FormData) => {
     setFormData(data)
+    setFormErrors(null)
     setResult(null)
     setIsDirty(true)
   }
@@ -122,6 +124,7 @@ export default function Home() {
       return a.fromDate.localeCompare(b.fromDate)
     })
     setPhases(sorted)
+    setVelocityError(null)
     setResult(null)
     setIsDirty(true)
   }
@@ -137,18 +140,22 @@ export default function Home() {
   }, [phases])
 
   const performCalculate = (overridePhasesData?: readonly PhaseFormData[]) => {
-    setError(null)
+    setFormErrors(null)
+    setVelocityError(null)
 
     const totalPoints = Number(formData.totalPoints)
     const sprintDays = Number(formData.sprintDays)
     const bufferPercent = Number(formData.bufferPercent)
 
+    const newFormErrors: { totalPoints?: string; startDate?: string } = {}
     if (!totalPoints || totalPoints <= 0) {
-      setError("ストーリーポイントの合計は正の数である必要があります。")
-      return
+      newFormErrors.totalPoints = "ストーリーポイントの合計は正の数である必要があります。"
     }
     if (!formData.startDate) {
-      setError("開始日は必須です。")
+      newFormErrors.startDate = "開始日は必須です。"
+    }
+    if (Object.keys(newFormErrors).length > 0) {
+      setFormErrors(newFormErrors)
       return
     }
 
@@ -163,11 +170,11 @@ export default function Home() {
       : velocityPhases
 
     if (resolvedVelocityPhases.length === 0) {
-      setError("少なくとも1つのベロシティフェーズが必要です。")
+      setVelocityError("少なくとも1つのベロシティフェーズが必要です。")
       return
     }
     if (resolvedVelocityPhases.some((p) => p.velocity <= 0)) {
-      setError("すべてのベロシティは正の数である必要があります。")
+      setVelocityError("すべてのベロシティは正の数である必要があります。")
       return
     }
 
@@ -265,8 +272,8 @@ export default function Home() {
           </div>
         )}
 
-        <ForecastForm data={formData} onChange={handleFormChange} />
-        <VelocityPhases phases={phases} onChange={handlePhasesChange} sprintDays={Number(formData.sprintDays) || undefined} startDate={formData.startDate || undefined} />
+        <ForecastForm data={formData} onChange={handleFormChange} errors={formErrors ?? undefined} />
+        <VelocityPhases phases={phases} onChange={handlePhasesChange} sprintDays={Number(formData.sprintDays) || undefined} startDate={formData.startDate || undefined} velocityError={velocityError ?? undefined} />
 
         <div className="border rounded-lg overflow-hidden">
           <button
@@ -290,10 +297,6 @@ export default function Home() {
             </div>
           )}
         </div>
-
-        {error && (
-          <p className="text-sm text-destructive font-medium">{error}</p>
-        )}
 
         {isDirty && (
           <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">

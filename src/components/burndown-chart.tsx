@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ComposedChart,
   Area,
@@ -9,7 +9,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   ReferenceLine,
   ReferenceDot,
   Legend,
@@ -207,9 +206,17 @@ export function findPhaseChangeMarkers(
 }
 
 export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints }: BurndownChartProps) {
-  const [isMounted, setIsMounted] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null)
   useEffect(() => {
-    setIsMounted(true)
+    const el = containerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (width > 0 && height > 0) setSize({ width, height })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
   }, [])
 
   const { theme } = useTheme()
@@ -290,12 +297,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] sm:h-[350px] w-full">
-          {isMounted && <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={data}
-              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-            >
+        <div ref={containerRef} className="h-[250px] sm:h-[350px] w-full">
+          {size && <ComposedChart
+            width={size.width}
+            height={size.height}
+            data={data}
+            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+          >
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.5} />
               <XAxis
                 dataKey="label"
@@ -442,8 +450,7 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                   connectNulls={false}
                 />
               )}
-            </ComposedChart>
-          </ResponsiveContainer>}
+          </ComposedChart>}
         </div>
       </CardContent>
     </Card>

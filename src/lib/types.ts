@@ -38,3 +38,16 @@ export type CompletedSprint = {
   readonly sprintNumber: number
   readonly actualPoints: number
 }
+
+export type EvmMetrics = {
+  readonly bac: number
+  readonly pv: number
+  readonly ev: number
+  readonly sv: number
+  readonly svPercent: number
+  readonly spi: number
+  readonly eacSprints: number
+  readonly tcpi: number | null
+  readonly completedSprintCount: number
+  readonly actualVelocityAvg: number
+}

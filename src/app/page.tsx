@@ -26,13 +26,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Plane } from "lucide-react"
 import { calculateForecast } from "@/lib/forecast"
+import { calculateEvmMetrics } from "@/lib/evm"
+import { EvmIndicators } from "@/components/evm-indicators"
 import { saveState, loadState } from "@/lib/storage"
 import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
 import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Link, ChevronDown, ChevronUp, BarChart2, AlertCircle, RotateCcw } from "lucide-react"
-import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
+import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint, EvmMetrics } from "@/lib/types"
 
 const BurndownChart = dynamic(
   () =>
@@ -197,6 +199,15 @@ export default function Home() {
       bufferPercent: Number(formData.bufferPercent),
     })
   }, [result, completedSprints, formData, velocityPhases])
+
+  const evmMetrics = useMemo((): EvmMetrics | null => {
+    if (!result || completedSprints.length === 0) return null
+    return calculateEvmMetrics(
+      Number(formData.totalPoints),
+      completedSprints,
+      result.standard
+    )
+  }, [result, completedSprints, formData.totalPoints])
 
   const performCalculate = (overridePhasesData?: readonly PhaseFormData[]) => {
     setFormErrors(null)
@@ -437,6 +448,7 @@ export default function Home() {
               result={displayResult ?? result}
               deadline={formData.deadline || undefined}
             />
+            {evmMetrics && <EvmIndicators metrics={evmMetrics} />}
             <BurndownChart
               result={result}
               velocityPhases={velocityPhases}

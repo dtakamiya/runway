@@ -30,7 +30,7 @@ import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
 import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Link, ChevronDown, ChevronUp, BarChart2 } from "lucide-react"
+import { Link, ChevronDown, ChevronUp, BarChart2, AlertCircle } from "lucide-react"
 import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 
 const BurndownChart = dynamic(
@@ -373,9 +373,10 @@ export default function Home() {
         </div>
 
         {isDirty && !formErrors && !velocityError && (
-          <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+          <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             値が変更されました。再計算してください。
-          </p>
+          </div>
         )}
 
         <Button

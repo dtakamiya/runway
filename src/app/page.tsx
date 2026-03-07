@@ -100,6 +100,9 @@ export default function Home() {
         setCompletedSprintForms(saved.completedSprints)
       }
       setRestoredFromStorage(true)
+    } else {
+      // 保存データがない場合でも再レンダリングを促し、Selectを正しく表示する
+      setFormData({ ...initialFormData })
     }
   }, [])
 

@@ -84,9 +84,11 @@ export default function Home() {
       const decoded = decodeState(encoded)
       if (decoded) {
         setFormData({ ...initialFormData, ...decoded.formData })
-        if (decoded.phases.length > 0) setPhases(decoded.phases)
+        if (decoded.phases.length > 0) {
+          setPhases(decoded.phases.map((p) => ({ ...p, id: p.id || crypto.randomUUID() })))
+        }
         if (decoded.completedSprints && decoded.completedSprints.length > 0) {
-          setCompletedSprintForms(decoded.completedSprints)
+          setCompletedSprintForms(decoded.completedSprints.map((s) => ({ ...s, id: s.id || crypto.randomUUID() })))
         }
         setRestoredFromStorage(true)
         return
@@ -95,9 +97,11 @@ export default function Home() {
     const saved = loadState()
     if (saved) {
       setFormData({ ...initialFormData, ...saved.formData })
-      if (saved.phases.length > 0) setPhases(saved.phases)
+      if (saved.phases.length > 0) {
+        setPhases(saved.phases.map((p) => ({ ...p, id: p.id || crypto.randomUUID() })))
+      }
       if (saved.completedSprints && saved.completedSprints.length > 0) {
-        setCompletedSprintForms(saved.completedSprints)
+        setCompletedSprintForms(saved.completedSprints.map((s) => ({ ...s, id: s.id || crypto.randomUUID() })))
       }
       setRestoredFromStorage(true)
     } else {

@@ -30,7 +30,7 @@ import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
 import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Link, ChevronDown, ChevronUp, BarChart2, AlertCircle } from "lucide-react"
+import { Link, ChevronDown, ChevronUp, BarChart2, AlertCircle, RotateCcw } from "lucide-react"
 import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 
 const BurndownChart = dynamic(
@@ -275,13 +275,14 @@ export default function Home() {
         <Separator />
 
         {restoredFromStorage !== null && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+          <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md px-3 py-2">
+            <RotateCcw className="h-4 w-4 shrink-0" />
             <span>{restoredFromStorage === 'url' ? '共有URLから設定を復元しました' : '前回の入力内容を復元しました'}</span>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button className="ml-auto text-xs underline hover:text-foreground cursor-pointer">
+                <Button variant="ghost" size="sm" className="ml-auto h-auto px-2 py-1 text-xs text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50">
                   リセット
-                </button>
+                </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>

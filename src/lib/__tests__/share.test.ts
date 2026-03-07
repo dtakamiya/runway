@@ -42,9 +42,43 @@ describe("share", () => {
     expect(decodeState("")).toBeNull()
   })
 
-  it("エンコード後のデータは URL クエリに使えるASCII文字のみ含む", () => {
+  it("エンコード後のデータは URL クエリに使えるASCII文字のみ含む（+や/を含まない）", () => {
     const encoded = encodeState(mockState)
-    // Base64 URL-safe は英数字と -_ のみ
-    expect(encoded).toMatch(/^[A-Za-z0-9+/=_-]+$/)
+    // URL-safe base64: +と/と=を含まない
+    expect(encoded).toMatch(/^[A-Za-z0-9\-_]+$/)
+    expect(encoded).not.toContain("+")
+    expect(encoded).not.toContain("/")
+    expect(encoded).not.toContain("=")
+  })
+
+  it("URLSearchParams経由でデコードしても正しく復元できる（+のスペース変換問題がない）", () => {
+    const encoded = encodeState(mockState)
+    // URLSearchParamsはURL-safeなbase64の文字列を変換しない
+    const params = new URLSearchParams(`s=${encoded}`)
+    const fromParams = params.get("s")
+    const decoded = decodeState(fromParams!)
+    expect(decoded?.formData.totalPoints).toBe("120")
+    expect(decoded?.phases[1].label).toBe("増員後")
+  })
+
+  it("日本語ラベルを含む状態でも URLSearchParams 経由で正しく復元できる", () => {
+    const stateWithJapanese: SavedState = {
+      formData: {
+        totalPoints: "100",
+        startDate: "2026-03-10",
+        sprintDays: "14",
+        bufferPercent: "20",
+        deadline: "",
+      },
+      phases: [
+        { id: "p1", fromDate: "2026-03-10", velocity: "15", label: "3人チーム" },
+      ],
+    }
+    const encoded = encodeState(stateWithJapanese)
+    const params = new URLSearchParams(`s=${encoded}`)
+    const fromParams = params.get("s")
+    const decoded = decodeState(fromParams!)
+    expect(decoded?.formData.sprintDays).toBe("14")
+    expect(decoded?.phases[0].label).toBe("3人チーム")
   })
 })

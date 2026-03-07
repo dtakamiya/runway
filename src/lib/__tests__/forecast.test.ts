@@ -94,6 +94,27 @@ describe("calculateForecast", () => {
     expect(result.standard.sprints[1].velocity).toBe(15)
     expect(result.standard.sprints[2].velocity).toBe(25)
   })
+
+  it("小数ベロシティは整数に丸められ、残りポイントが整数になる", () => {
+    // 過去ベロシティの平均が小数になるケース (e.g. 21.3)
+    const input: ForecastInput = {
+      totalPoints: 100,
+      startDate: new Date("2026-03-10"),
+      sprintDays: 14,
+      velocityPhases: [{ fromDate: new Date("2026-03-10"), velocity: 21.3 }],
+      bufferPercent: 0,
+    }
+    const result = calculateForecast(input)
+    // velocity=21.3 → Math.round → 21 として計算される
+    result.standard.sprints.forEach((sprint) => {
+      expect(Number.isInteger(sprint.velocity)).toBe(true)
+      expect(Number.isInteger(sprint.pointsBurned)).toBe(true)
+      expect(Number.isInteger(sprint.remainingPoints)).toBe(true)
+    })
+    // 最終スプリントの残りは必ず 0
+    const last = result.standard.sprints[result.standard.sprints.length - 1]
+    expect(last.remainingPoints).toBe(0)
+  })
 })
 
 describe("getIdealRemainingAtDate", () => {

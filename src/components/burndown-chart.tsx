@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ComposedChart,
   Area,
@@ -9,7 +9,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   ReferenceLine,
   ReferenceDot,
   Legend,
@@ -27,6 +26,7 @@ type BurndownChartProps = {
   readonly deadline?: string
   readonly completedSprints?: readonly CompletedSprint[]
   readonly totalPoints?: number
+  readonly bufferPercent?: number
 }
 
 type ChartDataPoint = {
@@ -206,10 +206,18 @@ export function findPhaseChangeMarkers(
   return markers
 }
 
-export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints }: BurndownChartProps) {
-  const [isMounted, setIsMounted] = useState(false)
+export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints, bufferPercent }: BurndownChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null)
   useEffect(() => {
-    setIsMounted(true)
+    const el = containerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (width > 0 && height > 0) setSize({ width, height })
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
   }, [])
 
   const { theme } = useTheme()
@@ -224,6 +232,9 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
   const deadlineLineColor = "#ef4444"
   const phaseLineColor = "#8b5cf6"
   const todayDotFill = "#3b82f6"
+
+  // バッファ0%のとき3シナリオが同一になるため1本のみ表示する
+  const isSingleScenario = (bufferPercent ?? 0) === 0
 
   const today = new Date()
   const deadlineDate = deadline ? parseISO(deadline) : undefined
@@ -265,6 +276,11 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3 flex-wrap">
           <CardTitle className="text-base">バーンダウンチャート</CardTitle>
+          {isSingleScenario && (
+            <span className="text-xs text-muted-foreground border border-border rounded px-1.5 py-0.5">
+              バッファ0%: シナリオ差なし
+            </span>
+          )}
           {delayDays !== null && (
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded-full ${
@@ -290,12 +306,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] sm:h-[350px] w-full">
-          {isMounted && <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={data}
-              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-            >
+        <div ref={containerRef} className="h-[250px] sm:h-[350px] w-full">
+          {size && <ComposedChart
+            width={size.width}
+            height={size.height}
+            data={data}
+            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+          >
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.5} />
               <XAxis
                 dataKey="label"
@@ -401,16 +418,18 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 />
               ))}
 
-              <Area
-                type="monotone"
-                dataKey="lowVelocity"
-                name="不調"
-                stroke="#f97316"
-                fill="#fed7aa"
-                fillOpacity={0.3}
-                strokeWidth={2}
-                connectNulls
-              />
+              {!isSingleScenario && (
+                <Area
+                  type="monotone"
+                  dataKey="lowVelocity"
+                  name="不調"
+                  stroke="#f97316"
+                  fill="#fed7aa"
+                  fillOpacity={0.3}
+                  strokeWidth={2}
+                  connectNulls
+                />
+              )}
               <Area
                 type="monotone"
                 dataKey="standard"
@@ -421,16 +440,18 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 strokeWidth={2}
                 connectNulls
               />
-              <Area
-                type="monotone"
-                dataKey="highVelocity"
-                name="好調"
-                stroke="#22c55e"
-                fill="#bbf7d0"
-                fillOpacity={0.3}
-                strokeWidth={2}
-                connectNulls
-              />
+              {!isSingleScenario && (
+                <Area
+                  type="monotone"
+                  dataKey="highVelocity"
+                  name="好調"
+                  stroke="#22c55e"
+                  fill="#bbf7d0"
+                  fillOpacity={0.3}
+                  strokeWidth={2}
+                  connectNulls
+                />
+              )}
               {hasActual && (
                 <Line
                   type="monotone"
@@ -442,8 +463,7 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                   connectNulls={false}
                 />
               )}
-            </ComposedChart>
-          </ResponsiveContainer>}
+          </ComposedChart>}
         </div>
       </CardContent>
     </Card>

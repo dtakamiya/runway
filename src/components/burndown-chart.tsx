@@ -14,7 +14,7 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
-import type { ForecastResult, SprintBreakdown, VelocityPhase } from "@/lib/types"
+import type { ForecastResult, VelocityPhase } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
 import { getIdealRemainingAtDate } from "@/lib/forecast"
 
@@ -27,20 +27,9 @@ type BurndownChartProps = {
 type ChartDataPoint = {
   readonly label: string
   readonly sprintNum: string
-  readonly optimistic: number | undefined
-  readonly standard: number | undefined
-  readonly pessimistic: number | undefined
-}
-
-function interpolateRemaining(
-  sprints: readonly SprintBreakdown[],
-  idx: number,
-  fraction: number
-): number | undefined {
-  const sprint = sprints[idx]
-  if (!sprint) return undefined
-  const startRemaining = sprint.remainingPoints + sprint.pointsBurned
-  return roundPt(startRemaining - fraction * sprint.pointsBurned)
+  readonly optimistic: number | null | undefined
+  readonly standard: number | null | undefined
+  readonly pessimistic: number | null | undefined
 }
 
 type SpecialPoint = {
@@ -49,7 +38,7 @@ type SpecialPoint = {
   readonly sprintNum: string
 }
 
-function buildChartData(
+export function buildChartData(
   result: ForecastResult,
   today: Date,
   deadline?: Date
@@ -125,21 +114,16 @@ function buildChartData(
     )
     if (sprintIdx < 0) continue
 
-    const stdSprint = result.standard.sprints[sprintIdx]
-    const fraction =
-      (sp.date.getTime() - stdSprint.startDate.getTime()) /
-      (stdSprint.endDate.getTime() - stdSprint.startDate.getTime())
-
-    // スプリント終了日ラベルの直前に挿入
+    // スプリント終了日ラベルの直前に挿入（null を使い、connectNulls でカーブ形状を保持）
     const sprintEndLabel = format(result.standard.sprints[sprintIdx].endDate, "M/d")
     const insertIdx = data.findIndex((d) => d.label === sprintEndLabel)
     if (insertIdx >= 0) {
       data.splice(insertIdx, 0, {
         label: sp.label,
         sprintNum: sp.sprintNum,
-        optimistic: interpolateRemaining(result.optimistic.sprints, sprintIdx, fraction),
-        standard: interpolateRemaining(result.standard.sprints, sprintIdx, fraction),
-        pessimistic: interpolateRemaining(result.pessimistic.sprints, sprintIdx, fraction),
+        optimistic: null,
+        standard: null,
+        pessimistic: null,
       })
     }
   }
@@ -310,6 +294,7 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
                 fill="#fed7aa"
                 fillOpacity={0.3}
                 strokeWidth={2}
+                connectNulls
               />
               <Area
                 type="monotone"
@@ -319,6 +304,7 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
                 fill="#bfdbfe"
                 fillOpacity={0.3}
                 strokeWidth={2}
+                connectNulls
               />
               <Area
                 type="monotone"
@@ -328,6 +314,7 @@ export function BurndownChart({ result, velocityPhases, deadline }: BurndownChar
                 fill="#bbf7d0"
                 fillOpacity={0.3}
                 strokeWidth={2}
+                connectNulls
               />
             </AreaChart>
           </ResponsiveContainer>

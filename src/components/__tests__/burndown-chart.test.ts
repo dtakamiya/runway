@@ -1,4 +1,4 @@
-import { findPhaseChangeMarkers } from "../burndown-chart"
+import { findPhaseChangeMarkers, buildChartData } from "../burndown-chart"
 import type { ForecastResult, VelocityPhase } from "@/lib/types"
 
 // recharts はコンポーネントのみ使用するためモック不要（関数のみテスト）
@@ -23,6 +23,90 @@ function makeResult(sprints: { startDate: Date; endDate: Date }[]): ForecastResu
   }
   return { optimistic: scenario, standard: scenario, pessimistic: scenario }
 }
+
+describe("buildChartData", () => {
+  // スプリント設定:
+  // S1: 4/7 〜 4/21
+  // S2: 4/21 〜 5/5
+  // S3: 5/5  〜 5/19
+  const sprints = [
+    { startDate: new Date("2025-04-07"), endDate: new Date("2025-04-21") },
+    { startDate: new Date("2025-04-21"), endDate: new Date("2025-05-05") },
+    { startDate: new Date("2025-05-05"), endDate: new Date("2025-05-19") },
+  ]
+
+  function makeResultWithPoints(
+    sprintDefs: { startDate: Date; endDate: Date }[]
+  ): ForecastResult {
+    const totalPoints = 100
+    const burnPerSprint = Math.floor(totalPoints / sprintDefs.length)
+    const sprintBreakdowns = sprintDefs.map((s, i) => ({
+      sprintNumber: i + 1,
+      velocity: burnPerSprint,
+      pointsBurned: burnPerSprint,
+      remainingPoints: totalPoints - (i + 1) * burnPerSprint,
+      startDate: s.startDate,
+      endDate: s.endDate,
+    }))
+    const scenario = {
+      totalPoints,
+      sprintCount: sprintDefs.length,
+      endDate: sprintDefs[sprintDefs.length - 1]?.endDate ?? new Date(),
+      sprints: sprintBreakdowns,
+    }
+    return { optimistic: scenario, standard: scenario, pessimistic: scenario }
+  }
+
+  it("デッドラインのデータポイントはシナリオ値が null になる", () => {
+    const result = makeResultWithPoints(sprints)
+    const today = new Date("2025-04-01") // スプリント範囲外
+    const deadline = new Date("2025-04-30") // S2 の途中
+
+    const data = buildChartData(result, today, deadline)
+
+    const dlPoint = data.find((d) => d.sprintNum === "DL")
+    expect(dlPoint).toBeDefined()
+    expect(dlPoint?.optimistic).toBeNull()
+    expect(dlPoint?.standard).toBeNull()
+    expect(dlPoint?.pessimistic).toBeNull()
+    expect(dlPoint?.label).toBe("4/30")
+  })
+
+  it("今日のデータポイントはシナリオ値が null になる", () => {
+    const result = makeResultWithPoints(sprints)
+    const today = new Date("2025-04-14") // S1 の途中
+
+    const data = buildChartData(result, today)
+
+    const todayPoint = data.find((d) => d.sprintNum === "今日")
+    expect(todayPoint).toBeDefined()
+    expect(todayPoint?.optimistic).toBeNull()
+    expect(todayPoint?.standard).toBeNull()
+    expect(todayPoint?.pessimistic).toBeNull()
+  })
+
+  it("デッドラインがスプリント範囲外の場合、DL データポイントが追加されない", () => {
+    const result = makeResultWithPoints(sprints)
+    const today = new Date("2025-04-01")
+    const deadline = new Date("2025-06-01") // 全スプリント終了後
+
+    const data = buildChartData(result, today, deadline)
+
+    const dlPoint = data.find((d) => d.sprintNum === "DL")
+    expect(dlPoint).toBeUndefined()
+  })
+
+  it("デッドラインがスプリント終了日と同じラベルの場合、重複挿入されない", () => {
+    const result = makeResultWithPoints(sprints)
+    const today = new Date("2025-04-01")
+    const deadline = new Date("2025-04-21") // S1 の終了日と同じ
+
+    const data = buildChartData(result, today, deadline)
+
+    const count = data.filter((d) => d.label === "4/21").length
+    expect(count).toBe(1)
+  })
+})
 
 describe("findPhaseChangeMarkers", () => {
   // スプリント設定:

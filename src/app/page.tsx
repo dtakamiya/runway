@@ -278,6 +278,8 @@ export default function Home() {
         <div className="border rounded-lg overflow-hidden">
           <button
             type="button"
+            aria-expanded={showVelocityHistory}
+            aria-controls="velocity-history-panel"
             className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
             onClick={() => setShowVelocityHistory((v) => !v)}
           >
@@ -289,7 +291,7 @@ export default function Home() {
             )}
           </button>
           {showVelocityHistory && (
-            <div className="px-4 py-3">
+            <div id="velocity-history-panel" className="px-4 py-3">
               <p className="text-xs text-muted-foreground mb-2">
                 過去スプリントのベロシティを入力すると平均値を計算し、第1フェーズに適用できます。
               </p>

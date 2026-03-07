@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, act } from "@testing-library/react"
 import Home from "../page"
 
 // recharts は jsdom 環境では動かないためモック
@@ -56,5 +56,34 @@ describe("Home (page)", () => {
 
     // 「再計算してください」メッセージが表示されない
     expect(screen.queryByText(/再計算してください/)).not.toBeInTheDocument()
+  })
+
+  describe("URLをコピーボタン（handleShare）", () => {
+    beforeEach(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        writable: true,
+        value: { writeText: jest.fn() },
+      })
+    })
+
+    it("クリップボード成功時、コピーしました！が表示される", async () => {
+      jest.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined)
+      render(<Home />)
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /URLをコピー/ }))
+      })
+      expect(screen.getByText("コピーしました！")).toBeInTheDocument()
+    })
+
+    it("クリップボードが失敗しても画面がクラッシュせず元の状態を保つ", async () => {
+      jest.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("NotAllowedError"))
+      render(<Home />)
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /URLをコピー/ }))
+      })
+      expect(screen.queryByText("コピーしました！")).not.toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /URLをコピー/ })).toBeInTheDocument()
+    })
   })
 })

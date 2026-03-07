@@ -43,13 +43,10 @@ type SpecialPoint = {
   readonly sprintNum: string
 }
 
-export function buildChartData(
+export function buildBaseDataPoints(
   result: ForecastResult,
-  today: Date,
-  deadline?: Date,
-  completedSprints?: readonly CompletedSprint[],
-  totalPoints?: number
-): readonly ChartDataPoint[] {
+  actualBySprintIndex: Map<number, number>
+): ChartDataPoint[] {
   const maxSprints = Math.max(
     result.optimistic.sprintCount,
     result.standard.sprintCount,
@@ -57,21 +54,11 @@ export function buildChartData(
   )
 
   const totalPointsVal = result.standard.sprints[0]
-    ? result.standard.sprints[0].remainingPoints +
-      result.standard.sprints[0].pointsBurned
+    ? result.standard.sprints[0].remainingPoints + result.standard.sprints[0].pointsBurned
     : 0
 
   const startDate = result.standard.sprints[0]?.startDate
   const startLabel = startDate ? format(startDate, "M/d") : "開始"
-
-  // 実績バーンダウンポイントを事前計算
-  const actualBurndown =
-    completedSprints && totalPoints !== undefined
-      ? buildActualBurndown(totalPoints, completedSprints, result.standard.sprints)
-      : []
-  const actualBySprintIndex = new Map(
-    actualBurndown.map((p) => [p.sprintIndex, p.remaining])
-  )
 
   const data: ChartDataPoint[] = [
     {
@@ -92,8 +79,8 @@ export function buildChartData(
     // X軸ラベルは標準シナリオの日付を優先、なければ悲観シナリオの日付
     const sprint = stdSprint ?? pesSprint
     const dateLabel = sprint ? format(sprint.endDate, "M/d") : `S${i + 1}`
-
     const sprintIndex = i + 1
+
     data.push({
       label: dateLabel,
       sprintNum: `S${sprintIndex}`,
@@ -106,14 +93,21 @@ export function buildChartData(
     })
   }
 
-  // 今日・デッドラインのデータポイントを収集し、日付昇順で挿入
-  const specialPoints: SpecialPoint[] = []
+  return data
+}
+
+export function collectSpecialPoints(
+  result: ForecastResult,
+  today: Date,
+  deadline?: Date
+): readonly SpecialPoint[] {
+  const points: SpecialPoint[] = []
 
   const todaySprintIdx = result.standard.sprints.findIndex(
     (s) => today >= s.startDate && today < s.endDate
   )
   if (todaySprintIdx >= 0) {
-    specialPoints.push({ date: today, label: format(today, "M/d"), sprintNum: "今日" })
+    points.push({ date: today, label: format(today, "M/d"), sprintNum: "今日" })
   }
 
   if (deadline) {
@@ -121,12 +115,33 @@ export function buildChartData(
       (s) => deadline >= s.startDate && deadline < s.endDate
     )
     if (dlSprintIdx >= 0) {
-      specialPoints.push({ date: deadline, label: format(deadline, "M/d"), sprintNum: "DL" })
+      points.push({ date: deadline, label: format(deadline, "M/d"), sprintNum: "DL" })
     }
   }
 
-  specialPoints.sort((a, b) => a.date.getTime() - b.date.getTime())
+  return points.sort((a, b) => a.date.getTime() - b.date.getTime())
+}
 
+export function buildChartData(
+  result: ForecastResult,
+  today: Date,
+  deadline?: Date,
+  completedSprints?: readonly CompletedSprint[],
+  totalPoints?: number
+): readonly ChartDataPoint[] {
+  const actualBurndown =
+    completedSprints && totalPoints !== undefined
+      ? buildActualBurndown(totalPoints, completedSprints, result.standard.sprints)
+      : []
+  const actualBySprintIndex = new Map(
+    actualBurndown.map((p) => [p.sprintIndex, p.remaining])
+  )
+
+  const data = buildBaseDataPoints(result, actualBySprintIndex)
+  const specialPoints = collectSpecialPoints(result, today, deadline)
+
+  // 今日・デッドラインのデータポイントをスプリント終了日ラベルの直前に挿入
+  // （null を使い、connectNulls でカーブ形状を保持）
   for (const sp of specialPoints) {
     if (data.some((d) => d.label === sp.label)) continue
 
@@ -135,7 +150,6 @@ export function buildChartData(
     )
     if (sprintIdx < 0) continue
 
-    // スプリント終了日ラベルの直前に挿入（null を使い、connectNulls でカーブ形状を保持）
     const sprintEndLabel = format(result.standard.sprints[sprintIdx].endDate, "M/d")
     const insertIdx = data.findIndex((d) => d.label === sprintEndLabel)
     if (insertIdx >= 0) {

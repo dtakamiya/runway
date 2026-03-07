@@ -1,5 +1,6 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -97,12 +98,24 @@ export function ForecastForm({ data, onChange }: ForecastFormProps) {
 
         <div className="space-y-1.5">
           <Label htmlFor="deadline">デッドライン (任意)</Label>
-          <Input
-            id="deadline"
-            type="date"
-            value={data.deadline}
-            onChange={(e) => update("deadline", e.target.value)}
-          />
+          <div className="flex gap-2">
+            <Input
+              id="deadline"
+              type="date"
+              value={data.deadline}
+              onChange={(e) => update("deadline", e.target.value)}
+            />
+            {data.deadline && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => update("deadline", "")}
+              >
+                クリア
+              </Button>
+            )}
+          </div>
           {data.deadline && (
             <p className="text-xs text-muted-foreground">
               各シナリオがこの日付に間に合うか判定します

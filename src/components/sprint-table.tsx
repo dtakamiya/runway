@@ -40,8 +40,7 @@ function ScenarioTable({
           CSVエクスポート
         </Button>
       </div>
-      <div className="overflow-x-auto">
-      <Table>
+      <Table className="min-w-[500px]">
         <TableHeader>
           <TableRow>
             <TableHead className="w-20">スプリント</TableHead>
@@ -70,7 +69,6 @@ function ScenarioTable({
           ))}
         </TableBody>
       </Table>
-      </div>
     </div>
   )
 }

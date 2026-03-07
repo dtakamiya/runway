@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import { format } from "date-fns"
 import { toCsv, downloadCsv } from "@/lib/export"
+import { roundPt } from "@/lib/utils"
 import type { ForecastResult, Scenario } from "@/lib/types"
 
 type SprintTableProps = {
@@ -60,10 +61,10 @@ function ScenarioTable({
                 {format(sprint.startDate, "yyyy/MM/dd")} -{" "}
                 {format(sprint.endDate, "yyyy/MM/dd")}
               </TableCell>
-              <TableCell className="text-right">{sprint.velocity}</TableCell>
-              <TableCell className="text-right">{sprint.pointsBurned}</TableCell>
+              <TableCell className="text-right">{roundPt(sprint.velocity)}</TableCell>
+              <TableCell className="text-right">{roundPt(sprint.pointsBurned)}</TableCell>
               <TableCell className="text-right">
-                {sprint.remainingPoints}
+                {roundPt(sprint.remainingPoints)}
               </TableCell>
             </TableRow>
           ))}

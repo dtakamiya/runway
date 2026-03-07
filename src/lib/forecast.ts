@@ -89,6 +89,17 @@ function applyBuffer(
   }))
 }
 
+export function snapToSprintStart(
+  phaseDate: Date,
+  sprintStartDate: Date,
+  sprintDays: number
+): Date {
+  if (phaseDate <= sprintStartDate) return sprintStartDate
+  const diffDays = (phaseDate.getTime() - sprintStartDate.getTime()) / (1000 * 60 * 60 * 24)
+  const sprintIndex = Math.ceil(diffDays / sprintDays)
+  return addDays(sprintStartDate, sprintIndex * sprintDays)
+}
+
 export function getIdealRemainingAtDate(
   sprints: readonly SprintBreakdown[],
   date: Date

@@ -27,9 +27,9 @@ type BurndownChartProps = {
 type ChartDataPoint = {
   readonly label: string
   readonly sprintNum: string
-  readonly optimistic: number
-  readonly standard: number
-  readonly pessimistic: number
+  readonly optimistic: number | undefined
+  readonly standard: number | undefined
+  readonly pessimistic: number | undefined
 }
 
 function interpolateRemaining(
@@ -90,9 +90,9 @@ function buildChartData(
     data.push({
       label: dateLabel,
       sprintNum: `S${i + 1}`,
-      optimistic: roundPt(optSprint?.remainingPoints ?? 0),
-      standard: roundPt(stdSprint?.remainingPoints ?? 0),
-      pessimistic: roundPt(pesSprint?.remainingPoints ?? 0),
+      optimistic: optSprint !== undefined ? roundPt(optSprint.remainingPoints) : undefined,
+      standard: stdSprint !== undefined ? roundPt(stdSprint.remainingPoints) : undefined,
+      pessimistic: pesSprint !== undefined ? roundPt(pesSprint.remainingPoints) : undefined,
     })
   }
 
@@ -161,9 +161,9 @@ function findPhaseChangeMarkers(
     const phaseDate = sorted[p].fromDate
     for (let i = 0; i < result.standard.sprints.length; i++) {
       const sprint = result.standard.sprints[i]
-      if (sprint.startDate <= phaseDate && sprint.endDate > phaseDate) {
+      if (sprint.startDate >= phaseDate) {
         markers.push({
-          xLabel: format(sprint.endDate, "M/d"),
+          xLabel: format(sprint.startDate, "M/d"),
           markerLabel: sorted[p].label || `vel=${sorted[p].velocity}`,
         })
         break

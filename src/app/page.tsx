@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Plane } from "lucide-react"
 import { calculateForecast } from "@/lib/forecast"
@@ -312,55 +313,59 @@ export default function Home() {
         <ForecastForm data={formData} onChange={handleFormChange} errors={formErrors ?? undefined} />
         <VelocityPhases phases={phases} onChange={handlePhasesChange} sprintDays={Number(formData.sprintDays) || undefined} startDate={formData.startDate || undefined} velocityError={velocityError ?? undefined} />
 
-        <div className="border rounded-lg overflow-hidden">
-          <button
-            type="button"
-            aria-expanded={showVelocityHistory}
-            aria-controls="velocity-history-panel"
-            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-            onClick={() => setShowVelocityHistory((v) => !v)}
-          >
-            <span>過去のベロシティから計算</span>
-            {showVelocityHistory ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )}
-          </button>
+        <Card>
+          <CardHeader className="pb-3">
+            <button
+              type="button"
+              aria-expanded={showVelocityHistory}
+              aria-controls="velocity-history-panel"
+              className="w-full flex items-center justify-between hover:opacity-80 transition-opacity cursor-pointer"
+              onClick={() => setShowVelocityHistory((v) => !v)}
+            >
+              <CardTitle className="text-base">過去のベロシティから計算</CardTitle>
+              {showVelocityHistory ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+          </CardHeader>
           {showVelocityHistory && (
-            <div id="velocity-history-panel" className="px-4 py-3">
+            <CardContent id="velocity-history-panel" className="pt-0">
               <p className="text-xs text-muted-foreground mb-2">
                 過去スプリントのベロシティを入力すると平均値を計算し、第1フェーズに適用できます。
               </p>
               <VelocityHistory onApply={handleVelocityHistoryApply} />
-            </div>
+            </CardContent>
           )}
-        </div>
+        </Card>
 
-        <div className="border rounded-lg overflow-hidden">
-          <button
-            type="button"
-            aria-expanded={showCompletedSprints}
-            aria-controls="completed-sprints-panel"
-            className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-            onClick={() => setShowCompletedSprints((v) => !v)}
-          >
-            <span>
-              実績入力
-              {completedSprintForms.length > 0 && (
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({completedSprintForms.length}スプリント入力済み)
-                </span>
+        <Card>
+          <CardHeader className="pb-3">
+            <button
+              type="button"
+              aria-expanded={showCompletedSprints}
+              aria-controls="completed-sprints-panel"
+              className="w-full flex items-center justify-between hover:opacity-80 transition-opacity cursor-pointer"
+              onClick={() => setShowCompletedSprints((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">実績入力</CardTitle>
+                {completedSprintForms.length > 0 && (
+                  <span className="text-xs text-muted-foreground font-normal">
+                    ({completedSprintForms.length}スプリント入力済み)
+                  </span>
+                )}
+              </div>
+              {showCompletedSprints ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               )}
-            </span>
-            {showCompletedSprints ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )}
-          </button>
+            </button>
+          </CardHeader>
           {showCompletedSprints && (
-            <div id="completed-sprints-panel" className="px-4 py-3">
+            <CardContent id="completed-sprints-panel" className="pt-0">
               <CompletedSprints
                 sprints={completedSprintForms}
                 onChange={setCompletedSprintForms}
@@ -368,9 +373,9 @@ export default function Home() {
                 sprintDays={Number(formData.sprintDays) || 14}
                 totalPoints={Number(formData.totalPoints) || undefined}
               />
-            </div>
+            </CardContent>
           )}
-        </div>
+        </Card>
 
         {isDirty && !formErrors && !velocityError && (
           <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">

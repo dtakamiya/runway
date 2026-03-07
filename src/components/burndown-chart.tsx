@@ -147,7 +147,7 @@ function buildChartData(
   return data
 }
 
-function findPhaseChangeMarkers(
+export function findPhaseChangeMarkers(
   result: ForecastResult,
   phases: readonly VelocityPhase[]
 ): readonly { xLabel: string; markerLabel: string }[] {
@@ -161,9 +161,9 @@ function findPhaseChangeMarkers(
     const phaseDate = sorted[p].fromDate
     for (let i = 0; i < result.standard.sprints.length; i++) {
       const sprint = result.standard.sprints[i]
-      if (sprint.startDate <= phaseDate && sprint.endDate > phaseDate) {
+      if (sprint.startDate >= phaseDate) {
         markers.push({
-          xLabel: format(sprint.endDate, "M/d"),
+          xLabel: format(sprint.startDate, "M/d"),
           markerLabel: sorted[p].label || `vel=${sorted[p].velocity}`,
         })
         break

@@ -44,7 +44,7 @@ function simulateSprints(
   let currentStart = startDate
 
   while (remaining > 0) {
-    const velocity = getVelocityForSprint(currentStart, phases)
+    const velocity = Math.round(getVelocityForSprint(currentStart, phases))
     const burned = Math.min(velocity, remaining)
     remaining = remaining - burned
     const endDate = addDays(currentStart, sprintDays)

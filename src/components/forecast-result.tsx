@@ -80,7 +80,7 @@ export function ForecastResultCards({
             data-scenario={config.key}
             className={`${config.bg} transition-all ${
               config.emphasis
-                ? "ring-2 ring-blue-400 shadow-lg md:scale-[1.03]"
+                ? "ring-2 ring-blue-400 shadow-lg md:scale-[1.03] order-first md:order-none"
                 : ""
             }`}
           >
@@ -93,6 +93,11 @@ export function ForecastResultCards({
                   data-testid={`icon-${config.key}`}
                 />
                 {config.title}
+                {config.emphasis && (
+                  <Badge className="ml-0.5 bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200 text-xs font-normal">
+                    推奨
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">

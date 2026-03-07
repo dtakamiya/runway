@@ -10,6 +10,17 @@ import {
 } from "@/components/velocity-phases"
 import { ForecastResultCards } from "@/components/forecast-result"
 import { SprintTable } from "@/components/sprint-table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Plane } from "lucide-react"
@@ -201,17 +212,34 @@ export default function Home() {
         {restoredFromStorage && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
             <span>前回の入力内容を復元しました</span>
-            <button
-              className="ml-auto text-xs underline hover:text-foreground"
-              onClick={() => {
-                setFormData(initialFormData)
-                setPhases(initialPhases)
-                setResult(null)
-                setRestoredFromStorage(false)
-              }}
-            >
-              リセット
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="ml-auto text-xs underline hover:text-foreground cursor-pointer">
+                  リセット
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>入力内容をリセットしますか？</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    この操作は取り消せません。すべての入力内容がデフォルト値に戻ります。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setFormData(initialFormData)
+                      setPhases(initialPhases)
+                      setResult(null)
+                      setRestoredFromStorage(false)
+                    }}
+                  >
+                    リセットする
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
 

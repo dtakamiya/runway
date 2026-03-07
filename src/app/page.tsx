@@ -420,6 +420,7 @@ export default function Home() {
               deadline={formData.deadline || undefined}
               completedSprints={completedSprints}
               totalPoints={Number(formData.totalPoints) || undefined}
+              bufferPercent={Number(formData.bufferPercent)}
             />
             <SprintTable result={result} />
           </div>

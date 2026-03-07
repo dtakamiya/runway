@@ -108,14 +108,6 @@ export default function Home() {
     setTimeout(() => setCopySuccess(false), 2000)
   }
 
-  const handleVelocityHistoryApply = (average: number) => {
-    if (phases.length === 0) return
-    const updated = phases.map((p, i) =>
-      i === 0 ? { ...p, velocity: String(average) } : p
-    )
-    handlePhasesChange(updated)
-  }
-
   const handleFormChange = (data: FormData) => {
     setFormData(data)
     setResult(null)
@@ -144,7 +136,7 @@ export default function Home() {
       }))
   }, [phases])
 
-  const handleCalculate = () => {
+  const performCalculate = (overridePhasesData?: readonly PhaseFormData[]) => {
     setError(null)
 
     const totalPoints = Number(formData.totalPoints)
@@ -159,11 +151,22 @@ export default function Home() {
       setError("開始日は必須です。")
       return
     }
-    if (velocityPhases.length === 0) {
+
+    const resolvedVelocityPhases: readonly VelocityPhase[] = overridePhasesData
+      ? overridePhasesData
+          .filter((p) => p.fromDate && p.velocity)
+          .map((p) => ({
+            fromDate: parseISO(p.fromDate),
+            velocity: Number(p.velocity),
+            label: p.label || undefined,
+          }))
+      : velocityPhases
+
+    if (resolvedVelocityPhases.length === 0) {
       setError("少なくとも1つのベロシティフェーズが必要です。")
       return
     }
-    if (velocityPhases.some((p) => p.velocity <= 0)) {
+    if (resolvedVelocityPhases.some((p) => p.velocity <= 0)) {
       setError("すべてのベロシティは正の数である必要があります。")
       return
     }
@@ -172,12 +175,31 @@ export default function Home() {
       totalPoints,
       startDate: parseISO(formData.startDate),
       sprintDays,
-      velocityPhases,
+      velocityPhases: resolvedVelocityPhases,
       bufferPercent,
     }
 
     setResult(calculateForecast(input))
     setIsDirty(false)
+  }
+
+  const handleCalculate = () => {
+    performCalculate()
+  }
+
+  const handleVelocityHistoryApply = (average: number) => {
+    if (phases.length === 0) return
+    const updated = phases.map((p, i) =>
+      i === 0 ? { ...p, velocity: String(average) } : p
+    )
+    const sorted = [...updated].sort((a, b) => {
+      if (!a.fromDate && !b.fromDate) return 0
+      if (!a.fromDate) return 1
+      if (!b.fromDate) return -1
+      return a.fromDate.localeCompare(b.fromDate)
+    })
+    setPhases(sorted)
+    performCalculate(sorted)
   }
 
   return (

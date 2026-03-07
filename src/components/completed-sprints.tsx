@@ -102,18 +102,16 @@ export function CompletedSprints({
                   />
                   <span className="text-xs text-muted-foreground">pt</span>
                 </div>
-                {index === sprints.length - 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleRemove(sprint.id)}
-                    aria-label={`Sprint ${sprintNumber} を削除`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemove(sprint.id)}
+                  aria-label={`Sprint ${sprintNumber} を削除`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             )
           })}

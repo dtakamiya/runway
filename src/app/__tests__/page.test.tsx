@@ -121,6 +121,45 @@ describe("Home (page)", () => {
     })
   })
 
+  describe("実績入力による予測更新（issue#92）", () => {
+    it("実績スプリントを追加すると残ポイントで再計算された予測が表示される", () => {
+      render(<Home />)
+      // デフォルト設定 (100pt, velocity 15, buffer 20%) で計算
+      fireEvent.click(screen.getByText("予測を計算"))
+      // 計算直後は 100 pts が3シナリオすべてに表示される
+      expect(screen.getAllByText("100 pts")).toHaveLength(3)
+
+      // 「実績入力」セクションを展開
+      fireEvent.click(screen.getByText("実績入力"))
+
+      // スプリントを追加して20pt入力
+      fireEvent.click(screen.getByText("スプリントを追加"))
+      const actualInput = screen.getByLabelText("Sprint 1 実績ポイント")
+      fireEvent.change(actualInput, { target: { value: "20" } })
+
+      // 残ポイント 80 pts (100 - 20) で再計算され表示される
+      expect(screen.getAllByText("80 pts")).toHaveLength(3)
+      // 元の 100 pts バッジは結果カードから消える
+      expect(screen.queryByText("100 pts")).not.toBeInTheDocument()
+    })
+
+    it("実績入力がなければ元の計算結果がそのまま表示される", () => {
+      render(<Home />)
+      fireEvent.click(screen.getByText("予測を計算"))
+      expect(screen.getAllByText("100 pts")).toHaveLength(3)
+    })
+
+    it("実績入力後もバーンダウンチャートが表示される", () => {
+      render(<Home />)
+      fireEvent.click(screen.getByText("予測を計算"))
+      fireEvent.click(screen.getByText("実績入力"))
+      fireEvent.click(screen.getByText("スプリントを追加"))
+      const actualInput = screen.getByLabelText("Sprint 1 実績ポイント")
+      fireEvent.change(actualInput, { target: { value: "15" } })
+      expect(screen.getByTestId("burndown-chart")).toBeInTheDocument()
+    })
+  })
+
   describe("URLをコピーボタン（handleShare）", () => {
     beforeEach(() => {
       Object.defineProperty(navigator, "clipboard", {

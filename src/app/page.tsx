@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
-import { parseISO } from "date-fns"
+import { addDays, parseISO } from "date-fns"
 import { ForecastForm, type FormData, type FormErrors } from "@/components/forecast-form"
 import {
   VelocityPhases,
@@ -174,6 +174,29 @@ export default function Home() {
         label: p.label || undefined,
       }))
   }, [phases])
+
+  // 実績入力がある場合、残ポイントと開始日を調整して予測を再計算
+  const displayResult = useMemo(() => {
+    if (!result) return null
+    if (completedSprints.length === 0) return result
+
+    const totalPoints = Number(formData.totalPoints)
+    const sprintDays = Number(formData.sprintDays) || 14
+    if (!formData.startDate || !totalPoints || velocityPhases.length === 0) return result
+
+    const actualBurned = completedSprints.reduce((sum, s) => sum + s.actualPoints, 0)
+    const remainingPoints = Math.max(0, totalPoints - actualBurned)
+    if (remainingPoints <= 0) return result
+
+    const adjustedStartDate = addDays(parseISO(formData.startDate), completedSprints.length * sprintDays)
+    return calculateForecast({
+      totalPoints: remainingPoints,
+      startDate: adjustedStartDate,
+      sprintDays,
+      velocityPhases,
+      bufferPercent: Number(formData.bufferPercent),
+    })
+  }, [result, completedSprints, formData, velocityPhases])
 
   const performCalculate = (overridePhasesData?: readonly PhaseFormData[]) => {
     setFormErrors(null)
@@ -411,7 +434,7 @@ export default function Home() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none motion-reduce:transition-none">
             <Separator />
             <ForecastResultCards
-              result={result}
+              result={displayResult ?? result}
               deadline={formData.deadline || undefined}
             />
             <BurndownChart
@@ -422,7 +445,7 @@ export default function Home() {
               totalPoints={Number(formData.totalPoints) || undefined}
               bufferPercent={Number(formData.bufferPercent)}
             />
-            <SprintTable result={result} />
+            <SprintTable result={displayResult ?? result} />
           </div>
         )}
       </div>

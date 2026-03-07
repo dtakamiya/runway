@@ -18,6 +18,7 @@ import { format, parseISO } from "date-fns"
 import type { ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 import { roundPt } from "@/lib/utils"
 import { getIdealRemainingAtDate, buildActualBurndown, calculateDelayDays } from "@/lib/forecast"
+import { useTheme } from "@/hooks/use-theme"
 
 type BurndownChartProps = {
   readonly result: ForecastResult
@@ -178,6 +179,19 @@ export function findPhaseChangeMarkers(
 }
 
 export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints }: BurndownChartProps) {
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
+
+  const tickColor = isDark ? "#a1a1aa" : "#666666"
+  const gridColor = isDark ? "#ffffff1a" : "#cccccc"
+  const tooltipStyle = isDark
+    ? { background: "#1e1e2e", border: "1px solid #3f3f5a", color: "#e4e4f0" }
+    : {}
+  const todayLineColor = isDark ? "#94a3b8" : "#64748b"
+  const deadlineLineColor = "#ef4444"
+  const phaseLineColor = "#8b5cf6"
+  const todayDotFill = "#3b82f6"
+
   const today = new Date()
   const deadlineDate = deadline ? parseISO(deadline) : undefined
   const data = buildChartData(result, today, deadlineDate, completedSprints, totalPoints)
@@ -249,14 +263,14 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
               data={data}
               margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.5} />
               <XAxis
                 dataKey="label"
                 fontSize={11}
                 angle={-35}
                 textAnchor="end"
                 height={50}
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: tickColor }}
               />
               <YAxis
                 fontSize={12}
@@ -266,14 +280,16 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                   position: "insideLeft",
                   offset: 10,
                   fontSize: 11,
-                  fill: "currentColor",
+                  fill: tickColor,
                 }}
+                tick={{ fill: tickColor }}
                 width={55}
               />
               <Tooltip
                 contentStyle={{
                   borderRadius: "8px",
                   fontSize: "12px",
+                  ...tooltipStyle,
                 }}
                 labelFormatter={(label, payload) => {
                   const sprintNum = (payload?.[0]?.payload as ChartDataPoint)?.sprintNum
@@ -285,13 +301,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
               {todayLabel && (
                 <ReferenceLine
                   x={todayLabel}
-                  stroke="#64748b"
+                  stroke={todayLineColor}
                   strokeDasharray="6 3"
                   label={{
                     value: "今日",
                     position: "top",
                     fontSize: 11,
-                    fill: "#64748b",
+                    fill: todayLineColor,
                   }}
                 />
               )}
@@ -301,8 +317,8 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                   x={todayLabel}
                   y={idealRemaining}
                   r={6}
-                  fill="#3b82f6"
-                  stroke="white"
+                  fill={todayDotFill}
+                  stroke={isDark ? "#1e1e2e" : "white"}
                   strokeWidth={2}
                 />
               )}
@@ -310,13 +326,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
               {deadlineLabel && (
                 <ReferenceLine
                   x={deadlineLabel}
-                  stroke="#ef4444"
+                  stroke={deadlineLineColor}
                   strokeDasharray="6 3"
                   label={{
                     value: `DL: ${deadlineLabel}`,
                     position: "top",
                     fontSize: 11,
-                    fill: "#ef4444",
+                    fill: deadlineLineColor,
                   }}
                 />
               )}
@@ -325,13 +341,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 <ReferenceLine
                   key={marker.xLabel}
                   x={marker.xLabel}
-                  stroke="#8b5cf6"
+                  stroke={phaseLineColor}
                   strokeDasharray="4 4"
                   label={{
                     value: marker.markerLabel,
                     position: "top",
                     fontSize: 11,
-                    fill: "#8b5cf6",
+                    fill: phaseLineColor,
                   }}
                 />
               ))}

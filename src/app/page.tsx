@@ -29,6 +29,7 @@ import { saveState, loadState } from "@/lib/storage"
 import { encodeState, decodeState } from "@/lib/share"
 import { VelocityHistory } from "@/components/velocity-history"
 import { CompletedSprints, type CompletedSprintFormData } from "@/components/completed-sprints"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Link, ChevronDown, ChevronUp } from "lucide-react"
 import type { ForecastInput, ForecastResult, VelocityPhase, CompletedSprint } from "@/lib/types"
 
@@ -257,6 +258,7 @@ export default function Home() {
             <Link className="h-4 w-4" />
             {copySuccess ? "コピーしました！" : "URLをコピー"}
           </Button>
+          <ThemeToggle />
         </div>
 
         <Separator />

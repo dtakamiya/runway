@@ -119,7 +119,7 @@ describe("findPhaseChangeMarkers", () => {
     { startDate: new Date("2025-04-17"), endDate: new Date("2025-05-01") },
   ]
 
-  it("フェーズ開始日がスプリント開始日と一致するとき、そのスプリントの開始日にマーカーを置く", () => {
+  it("フェーズ開始日がスプリント開始日と一致するとき、全フェーズのマーカーを置く", () => {
     const result = makeResult(sprints)
     const phases: VelocityPhase[] = [
       { fromDate: new Date("2025-03-20"), velocity: 10 },
@@ -128,13 +128,15 @@ describe("findPhaseChangeMarkers", () => {
 
     const markers = findPhaseChangeMarkers(result, phases)
 
-    expect(markers).toHaveLength(1)
-    // マーカーはS2の開始日（= S1の終了日）= 4/3 に置かれるべき
-    expect(markers[0].xLabel).toBe("4/3")
-    expect(markers[0].markerLabel).toBe("phase2")
+    // フェーズ1（3/20）とフェーズ2（4/3）の両方にマーカーが置かれる
+    expect(markers).toHaveLength(2)
+    expect(markers[0].xLabel).toBe("3/20")
+    expect(markers[0].markerLabel).toBe("vel=10")
+    expect(markers[1].xLabel).toBe("4/3")
+    expect(markers[1].markerLabel).toBe("phase2")
   })
 
-  it("フェーズ開始日がスプリント中間にあるとき、そのスプリントの開始日にマーカーを置く", () => {
+  it("フェーズ開始日がスプリント中間にあるとき、フェーズ1は最初のスプリント開始日、フェーズ2以降は切り替え後のスプリント開始日にマーカーを置く", () => {
     const result = makeResult(sprints)
     const phases: VelocityPhase[] = [
       { fromDate: new Date("2025-03-20"), velocity: 10 },
@@ -143,9 +145,10 @@ describe("findPhaseChangeMarkers", () => {
 
     const markers = findPhaseChangeMarkers(result, phases)
 
-    // 4/10はS2の途中 → S3開始日(4/17)にマーカー
-    expect(markers).toHaveLength(1)
-    expect(markers[0].xLabel).toBe("4/17")
+    // フェーズ1は3/20、4/10はS2の途中 → フェーズ2はS3開始日(4/17)にマーカー
+    expect(markers).toHaveLength(2)
+    expect(markers[0].xLabel).toBe("3/20")
+    expect(markers[1].xLabel).toBe("4/17")
   })
 
   it("フェーズが1つのとき、マーカーは空", () => {
@@ -157,7 +160,7 @@ describe("findPhaseChangeMarkers", () => {
     expect(markers).toHaveLength(0)
   })
 
-  it("labelがない場合、vel=<velocity>の形式でmarkerLabelを生成する", () => {
+  it("labelがない場合、全フェーズでvel=<velocity>の形式でmarkerLabelを生成する", () => {
     const result = makeResult(sprints)
     const phases: VelocityPhase[] = [
       { fromDate: new Date("2025-03-20"), velocity: 10 },
@@ -166,6 +169,26 @@ describe("findPhaseChangeMarkers", () => {
 
     const markers = findPhaseChangeMarkers(result, phases)
 
-    expect(markers[0].markerLabel).toBe("vel=15")
+    expect(markers[0].markerLabel).toBe("vel=10")
+    expect(markers[1].markerLabel).toBe("vel=15")
+  })
+
+  it("3フェーズある場合、全フェーズにマーカーを置く", () => {
+    const result = makeResult(sprints)
+    const phases: VelocityPhase[] = [
+      { fromDate: new Date("2025-03-20"), velocity: 10 },
+      { fromDate: new Date("2025-04-03"), velocity: 20 },
+      { fromDate: new Date("2025-04-17"), velocity: 30 },
+    ]
+
+    const markers = findPhaseChangeMarkers(result, phases)
+
+    expect(markers).toHaveLength(3)
+    expect(markers[0].xLabel).toBe("3/20")
+    expect(markers[0].markerLabel).toBe("vel=10")
+    expect(markers[1].xLabel).toBe("4/3")
+    expect(markers[1].markerLabel).toBe("vel=20")
+    expect(markers[2].xLabel).toBe("4/17")
+    expect(markers[2].markerLabel).toBe("vel=30")
   })
 })

@@ -162,6 +162,17 @@ export function findPhaseChangeMarkers(
   )
 
   const markers: { xLabel: string; markerLabel: string }[] = []
+
+  // フェーズ1（最初のフェーズ）は最初のスプリント開始位置にラベルを置く
+  const firstSprint = result.standard.sprints[0]
+  if (firstSprint) {
+    markers.push({
+      xLabel: format(firstSprint.startDate, "M/d"),
+      markerLabel: sorted[0].label || `vel=${sorted[0].velocity}`,
+    })
+  }
+
+  // フェーズ2以降は切り替え日以降の最初のスプリント開始位置にラベルを置く
   for (let p = 1; p < sorted.length; p++) {
     const phaseDate = sorted[p].fromDate
     for (let i = 0; i < result.standard.sprints.length; i++) {

@@ -20,10 +20,11 @@ type VelocityPhasesProps = {
 
 export function VelocityPhases({ phases, onChange }: VelocityPhasesProps) {
   const addPhase = () => {
+    const lastPhase = phases[phases.length - 1]
     const newPhase: PhaseFormData = {
       id: crypto.randomUUID(),
       fromDate: "",
-      velocity: "",
+      velocity: lastPhase ? lastPhase.velocity : "",
       label: "",
     }
     onChange([...phases, newPhase])

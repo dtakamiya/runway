@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   ComposedChart,
   Area,
@@ -206,6 +207,11 @@ export function findPhaseChangeMarkers(
 }
 
 export function BurndownChart({ result, velocityPhases, deadline, completedSprints, totalPoints }: BurndownChartProps) {
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const { theme } = useTheme()
   const isDark = theme === "dark"
 
@@ -285,7 +291,7 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
       </CardHeader>
       <CardContent>
         <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          {isMounted && <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}
               margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
@@ -437,7 +443,7 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 />
               )}
             </ComposedChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer>}
         </div>
       </CardContent>
     </Card>

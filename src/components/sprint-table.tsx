@@ -52,8 +52,11 @@ function ScenarioTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {scenario.sprints.map((sprint) => (
-              <TableRow key={sprint.sprintNumber}>
+            {scenario.sprints.map((sprint, index) => (
+              <TableRow
+                key={sprint.sprintNumber}
+                className={`hover:bg-muted/50 transition-colors${index % 2 === 1 ? " bg-muted/20" : ""}`}
+              >
                 <TableCell className="font-medium">
                   S{sprint.sprintNumber}
                 </TableCell>

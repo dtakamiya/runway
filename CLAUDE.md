@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Project Overview
 
 Runway は、ストーリーポイントとベロシティを使ってスプリントの完了予測を行うプランニングアプリケーション。チームのベロシティ（1スプリントあたりの消化ポイント数）とバックログの残ストーリーポイントから、開発完了時期を予測する。
@@ -21,35 +23,53 @@ Runway は、ストーリーポイントとベロシティを使ってスプリ�
 - Jest + ts-jest (テスト)
 - npm
 
+## Development Commands
+
+- `npm run dev` - Dev server (localhost:3000)
+- `npm run build` - Production build
+- `npm test` - Run all Jest tests
+- `npm test -- --testPathPattern=forecast` - Run a single test file by pattern
+- `npm run lint` - ESLint
+
 ## Architecture
 
 ```
 src/
   app/
+    page.tsx            # Main page: all state, orchestrates child components
     layout.tsx          # Root layout
-    page.tsx            # Main page (client component, state management)
     globals.css         # Tailwind + shadcn CSS variables
+    __tests__/page.test.tsx
   components/
-    ui/                 # shadcn/ui components
-    forecast-form.tsx   # Basic input (points, start date, interval, buffer)
+    ui/                 # shadcn/ui primitives (button, card, input, etc.)
+    forecast-form.tsx   # Basic input (totalPoints, startDate, sprintDays, bufferPercent, deadline)
     velocity-phases.tsx # Velocity phase settings (date-based, dynamic add/remove)
-    forecast-result.tsx # 3-scenario completion date cards
-    burndown-chart.tsx  # Burndown chart (3 lines, recharts)
-    sprint-table.tsx    # Sprint breakdown table
+    velocity-history.tsx # Past sprint velocities → average → applies to phase 1
+    completed-sprints.tsx # Actual sprint results input (for burndown actuals)
+    forecast-result.tsx # 3-scenario completion date cards with deadline badge
+    burndown-chart.tsx  # Burndown chart (recharts) — loaded via dynamic() with ssr:false
+    sprint-table.tsx    # Sprint breakdown table with CSV export
+    theme-toggle.tsx    # Dark/light mode toggle
   lib/
-    utils.ts            # cn() helper (shadcn)
-    forecast.ts         # Calculation logic (pure functions)
-    types.ts            # Type definitions
-    __tests__/
-      forecast.test.ts  # Unit tests for forecast logic
+    types.ts            # Core type definitions (ForecastInput, ForecastResult, Scenario, etc.)
+    forecast.ts         # Pure calculation logic (calculateForecast, buildActualBurndown, etc.)
+    storage.ts          # localStorage persistence (saveState / loadState)
+    share.ts            # URL share: encodeState / decodeState (URL-safe base64)
+    export.ts           # CSV export: toCsv / downloadCsv
+    velocity-stats.ts   # Statistics helpers (average, stdDev, CV)
+    utils.ts            # cn() helper (shadcn), roundPt()
+    __tests__/          # Unit tests for all lib modules
+  hooks/
+    use-theme.ts        # Dark mode state hook
 ```
 
-## Development Commands
+### Key Patterns
 
-- `npm run dev` - Start dev server
-- `npm run build` - Production build
-- `npm test` - Run Jest tests
-- `npm run lint` - Run ESLint
+- **State flow**: `page.tsx` owns all state (`formData`, `phases`, `completedSprintForms`, `result`). Child components receive data + onChange callbacks.
+- **Form data vs domain types**: Form inputs are strings (e.g. `PhaseFormData.velocity: string`). `page.tsx` converts to domain types (`VelocityPhase.velocity: number`) via `useMemo` before passing to `calculateForecast`.
+- **BurndownChart SSR**: Loaded with `dynamic(..., { ssr: false })` because recharts requires browser DOM.
+- **State persistence**: On every state change → `saveState()` to localStorage. On mount → URL param `?s=` checked first (shared URL), then localStorage.
+- **Buffer**: `bufferPercent` scales velocity ±N% to produce optimistic/pessimistic scenarios (`highVelocity` / `lowVelocity`).
 
 ## Domain Concepts
 
@@ -59,4 +79,5 @@ src/
 - **Runway**: 残バックログをベロシティで割った、完了までの予測スプリント数
 - **Burndown**: 残ポイントの時系列推移
 - **VelocityPhase**: 日付ベースのベロシティ変化（人員増減等）
-- **Scenario**: 楽観/標準/悲観の3パターン予測
+- **Scenario**: 楽観/標準/悲観の3パターン予測（`highVelocity` / `standard` / `lowVelocity`）
+- **CompletedSprint**: 実績入力済みスプリント（バーンダウン実績線に使用）

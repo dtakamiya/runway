@@ -8,7 +8,7 @@ import type {
   CompletedSprint,
 } from "./types"
 
-export type ActualBurndownPoint = {
+type ActualBurndownPoint = {
   readonly sprintIndex: number
   readonly remaining: number
 }

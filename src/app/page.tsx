@@ -328,7 +328,7 @@ export default function Home() {
               result={result}
               deadline={formData.deadline || undefined}
             />
-            <BurndownChart result={result} velocityPhases={velocityPhases} />
+            <BurndownChart result={result} velocityPhases={velocityPhases} deadline={formData.deadline || undefined} />
             <SprintTable result={result} />
           </div>
         )}

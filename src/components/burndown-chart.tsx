@@ -19,6 +19,7 @@ import { roundPt } from "@/lib/utils"
 type BurndownChartProps = {
   readonly result: ForecastResult
   readonly velocityPhases: readonly VelocityPhase[]
+  readonly deadline?: string
 }
 
 type ChartDataPoint = {
@@ -101,7 +102,7 @@ function findPhaseChangeSprintIndices(
   return markers
 }
 
-export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
+export function BurndownChart({ result, velocityPhases, deadline }: BurndownChartProps) {
   const data = buildChartData(result)
   const phaseMarkers = findPhaseChangeSprintIndices(result, velocityPhases)
 
@@ -116,6 +117,18 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
     }
     return null
   })()
+
+  // デッドラインのマーカー位置を特定
+  const deadlineLabel = deadline ? (() => {
+    const deadlineDate = new Date(deadline + "T00:00:00")
+    for (let i = 0; i < result.standard.sprints.length; i++) {
+      const sprint = result.standard.sprints[i]
+      if (deadlineDate >= sprint.startDate && deadlineDate <= sprint.endDate) {
+        return data[i + 1]?.label
+      }
+    }
+    return null
+  })() : null
 
   return (
     <Card>
@@ -172,6 +185,21 @@ export function BurndownChart({ result, velocityPhases }: BurndownChartProps) {
                     position: "top",
                     fontSize: 11,
                     fill: "#64748b",
+                  }}
+                />
+              )}
+
+              {deadlineLabel && (
+                <ReferenceLine
+                  x={deadlineLabel}
+                  stroke="#ef4444"
+                  strokeDasharray="6 3"
+                  strokeWidth={2}
+                  label={{
+                    value: `DL: ${deadlineLabel}`,
+                    position: "top",
+                    fontSize: 11,
+                    fill: "#ef4444",
                   }}
                 />
               )}

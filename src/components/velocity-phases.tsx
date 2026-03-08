@@ -122,7 +122,7 @@ export function VelocityPhases({ phases, onChange, sprintDays, startDate, veloci
                   }
                 />
               </div>
-              <div className="col-span-2 md:col-span-1">
+              <div className="sm:col-span-2 md:col-span-1">
                 <Label className="text-xs">メモ</Label>
                 <Input
                   placeholder="例: 3人チーム"

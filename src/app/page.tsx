@@ -291,7 +291,7 @@ export default function Home() {
           </div>
           <div className="flex-1">
             <h1 className="text-3xl font-bold tracking-tight">Runway</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="hidden sm:block text-xs sm:text-sm text-muted-foreground">
               スプリント完了予測ツール
             </p>
           </div>

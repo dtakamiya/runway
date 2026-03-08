@@ -12,6 +12,7 @@
 - **実績スプリント入力** - 消化済みスプリントの実績ポイントを入力してバーンダウンに反映
 - **バーンダウンチャート** - 楽観・標準・悲観の3ラインをrecharts で描画
 - **スプリント別詳細テーブル** - 各スプリントの期間・消化ポイント・残ポイントを一覧表示
+- **EVM 指標** - 実績入力に基づく SPI, SV, TCPI, EAC を自動計算・表示
 - **URLシェア機能** - 入力状態をURLにエンコードして共有
 - **入力状態の永続化** - LocalStorage に保存してページ再読み込み後も維持
 - **ダークモード対応**
@@ -101,10 +102,12 @@ src/
     forecast-result.tsx # 3シナリオ完了日カード（デッドラインバッジ付き）
     burndown-chart.tsx  # バーンダウンチャート (recharts) — dynamic() で SSR 無効化
     sprint-table.tsx    # スプリント別詳細テーブル（CSV エクスポート対応）
+    evm-indicators.tsx  # EVM 指標カード（SPI, SV, TCPI など）
     theme-toggle.tsx    # ダーク/ライトモード切り替え
   lib/
-    types.ts            # コア型定義 (ForecastInput, ForecastResult, Scenario など)
+    types.ts            # コア型定義 (ForecastInput, ForecastResult, Scenario, EvmMetrics)
     forecast.ts         # 純粋な計算ロジック (calculateForecast, buildActualBurndown など)
+    evm.ts              # EVM 指標計算 (calculateEvmMetrics)
     storage.ts          # localStorage 永続化 (saveState / loadState)
     share.ts            # URL シェア: encodeState / decodeState (URL-safe base64)
     export.ts           # CSV エクスポート: toCsv / downloadCsv
@@ -135,3 +138,7 @@ src/
 | VelocityPhase | 日付ベースのベロシティ変化（人員増減等） |
 | Scenario | 楽観/標準/悲観の3パターン予測（`highVelocity` / `standard` / `lowVelocity`） |
 | CompletedSprint | 実績入力済みスプリント（バーンダウン実績線に使用） |
+| EVM | Earned Value Management。実績と計画の乖離を定量的に把握する手法 |
+| SPI | Schedule Performance Index。進捗効率（1.0 以上で計画通り） |
+| SV | Schedule Variance。計画との差異ポイント数 |
+| TCPI | To-Complete Performance Index。残作業に必要な効率 |

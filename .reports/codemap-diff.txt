@@ -1,0 +1,57 @@
+Codemap Update Diff Report
+==========================
+Date: 2026-03-08
+Previous state: No codemaps existed (only codemaps/dead-code-analysis.md)
+
+## New Files Created
+
+1. codemaps/architecture.md  -- Full architecture overview
+2. codemaps/frontend.md      -- Frontend component tree and import graph
+3. codemaps/data.md           -- Data model, types, and calculation functions
+
+## Summary of Changes
+
+### codemaps/architecture.md (NEW)
+  - High-level architecture diagram (client-only SPA)
+  - Directory structure with line counts per file
+  - State flow diagram (form -> useMemo -> calculateForecast -> result)
+  - Persistence flow (localStorage + URL params)
+  - Complete dependency table (13 production deps, 11 dev deps)
+  - Key design decisions documented (6 items)
+
+### codemaps/frontend.md (NEW)
+  - Full component tree (15 custom components + 10 shadcn/ui primitives)
+  - Component details table (file, lines, exports, props)
+  - Import dependency graph for all non-ui components
+  - shadcn/ui primitives usage mapping
+  - Responsive design patterns documented
+  - Accessibility features documented (6 items)
+
+### codemaps/data.md (NEW)
+  - 7 domain types documented with field-level descriptions
+  - 3 form types documented (string-based for controlled inputs)
+  - SavedState schema documented
+  - Type conversion flow (string -> domain)
+  - 15 exported functions documented (signature + purpose)
+  - Internal (non-exported) functions listed
+  - EVM formulas documented
+
+## Key Findings
+
+1. Total source code: ~3,060 lines (excluding tests, ui primitives, CSS)
+2. Largest files: page.tsx (466), burndown-chart.tsx (458)
+3. Pure lib functions: 15 exported, 4 internal
+4. 7 domain types, all readonly (immutable)
+5. No backend / no API routes / no database -- pure client-side app
+6. evm-indicators.tsx and evm.ts are newer additions (not in CLAUDE.md architecture)
+7. Package versions: Next.js 16.1.6, React 19.2.3, recharts 3.7.0
+8. 10 shadcn/ui primitives in use
+
+## Discrepancies with CLAUDE.md
+
+1. CLAUDE.md says "Next.js 16" -- actual is 16.1.6
+2. CLAUDE.md architecture section missing: evm-indicators.tsx, evm.ts, evm types
+3. CLAUDE.md says "React 19.0.0" -- actual is 19.2.3
+4. CLAUDE.md says "Tailwind CSS 3.4.1" -- actual is Tailwind CSS v4
+5. CLAUDE.md says "recharts" without version -- actual is 3.7.0
+6. CLAUDE.md does not mention lucide-react version (0.577.0)

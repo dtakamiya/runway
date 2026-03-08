@@ -49,10 +49,12 @@ src/
     forecast-result.tsx # 3-scenario completion date cards with deadline badge
     burndown-chart.tsx  # Burndown chart (recharts) — loaded via dynamic() with ssr:false
     sprint-table.tsx    # Sprint breakdown table with CSV export
+    evm-indicators.tsx  # EVM indicators card (SPI, SV, TCPI, etc.)
     theme-toggle.tsx    # Dark/light mode toggle
   lib/
-    types.ts            # Core type definitions (ForecastInput, ForecastResult, Scenario, etc.)
+    types.ts            # Core type definitions (ForecastInput, ForecastResult, Scenario, EvmMetrics)
     forecast.ts         # Pure calculation logic (calculateForecast, buildActualBurndown, etc.)
+    evm.ts              # EVM metrics calculation (calculateEvmMetrics)
     storage.ts          # localStorage persistence (saveState / loadState)
     share.ts            # URL share: encodeState / decodeState (URL-safe base64)
     export.ts           # CSV export: toCsv / downloadCsv
@@ -81,3 +83,7 @@ src/
 - **VelocityPhase**: 日付ベースのベロシティ変化（人員増減等）
 - **Scenario**: 楽観/標準/悲観の3パターン予測（`highVelocity` / `standard` / `lowVelocity`）
 - **CompletedSprint**: 実績入力済みスプリント（バーンダウン実績線に使用）
+- **EVM (Earned Value Management)**: 実績と計画の乖離を定量的に把握する手法
+- **SPI (Schedule Performance Index)**: 進捗効率（EV/PV、1.0以上で計画通り）
+- **SV (Schedule Variance)**: 計画との差異ポイント数（EV - PV）
+- **TCPI (To-Complete Performance Index)**: 残作業を計画通りに完了するために必要な効率

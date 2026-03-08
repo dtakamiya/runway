@@ -30,18 +30,13 @@ type BurndownChartProps = {
 }
 
 type ChartDataPoint = {
+  readonly date: number // タイムスタンプ (XAxis の dataKey)
   readonly label: string
   readonly sprintNum: string
   readonly highVelocity: number | null | undefined
   readonly standard: number | null | undefined
   readonly lowVelocity: number | null | undefined
   readonly actual?: number | null
-}
-
-type SpecialPoint = {
-  readonly date: Date
-  readonly label: string
-  readonly sprintNum: string
 }
 
 export function buildBaseDataPoints(
@@ -60,9 +55,11 @@ export function buildBaseDataPoints(
 
   const startDate = result.standard.sprints[0]?.startDate
   const startLabel = startDate ? format(startDate, "M/d") : "開始"
+  const startTs = startDate ? startDate.getTime() : 0
 
   const data: ChartDataPoint[] = [
     {
+      date: startTs,
       label: startLabel,
       sprintNum: "開始",
       highVelocity: result.highVelocity.totalPoints,
@@ -77,12 +74,14 @@ export function buildBaseDataPoints(
     const stdSprint = result.standard.sprints[i]
     const lowSprint = result.lowVelocity.sprints[i]
 
-    // X軸ラベルは標準シナリオの日付を優先、なければ不調シナリオの日付
+    // X軸の日付は標準シナリオの終了日を優先、なければ不調シナリオの終了日
     const sprint = stdSprint ?? lowSprint
     const dateLabel = sprint ? format(sprint.endDate, "M/d") : `S${i + 1}`
+    const dateTs = sprint ? sprint.endDate.getTime() : startTs + (i + 1) * 86400000
     const sprintIndex = i + 1
 
     data.push({
+      date: dateTs,
       label: dateLabel,
       sprintNum: `S${sprintIndex}`,
       highVelocity: highSprint !== undefined ? roundPt(highSprint.remainingPoints) : undefined,
@@ -96,6 +95,8 @@ export function buildBaseDataPoints(
 
   return data
 }
+
+type SpecialPoint = { date: Date; label: string; sprintNum: string }
 
 export function collectSpecialPoints(
   result: ForecastResult,
@@ -138,51 +139,25 @@ export function buildChartData(
     actualBurndown.map((p) => [p.sprintIndex, p.remaining])
   )
 
-  const data = buildBaseDataPoints(result, actualBySprintIndex)
-  const specialPoints = collectSpecialPoints(result, today, deadline)
-
-  // 今日・デッドラインのデータポイントをスプリント終了日ラベルの直前に挿入
-  // （null を使い、connectNulls でカーブ形状を保持）
-  for (const sp of specialPoints) {
-    if (data.some((d) => d.label === sp.label)) continue
-
-    const sprintIdx = result.standard.sprints.findIndex(
-      (s) => sp.date >= s.startDate && sp.date < s.endDate
-    )
-    if (sprintIdx < 0) continue
-
-    const sprintEndLabel = format(result.standard.sprints[sprintIdx].endDate, "M/d")
-    const insertIdx = data.findIndex((d) => d.label === sprintEndLabel)
-    if (insertIdx >= 0) {
-      data.splice(insertIdx, 0, {
-        label: sp.label,
-        sprintNum: sp.sprintNum,
-        highVelocity: null,
-        standard: null,
-        lowVelocity: null,
-      })
-    }
-  }
-
-  return data
+  return buildBaseDataPoints(result, actualBySprintIndex)
 }
 
 export function findPhaseChangeMarkers(
   result: ForecastResult,
   phases: readonly VelocityPhase[]
-): readonly { xLabel: string; markerLabel: string; isFirst: boolean }[] {
+): readonly { xTs: number; markerLabel: string; isFirst: boolean }[] {
   if (phases.length <= 1) return []
   const sorted = [...phases].sort(
     (a, b) => a.fromDate.getTime() - b.fromDate.getTime()
   )
 
-  const markers: { xLabel: string; markerLabel: string; isFirst: boolean }[] = []
+  const markers: { xTs: number; markerLabel: string; isFirst: boolean }[] = []
 
   // フェーズ1（最初のフェーズ）は最初のスプリント開始位置に縦線のみ（ラベルなし）
   const firstSprint = result.standard.sprints[0]
   if (firstSprint) {
     markers.push({
-      xLabel: format(firstSprint.startDate, "M/d"),
+      xTs: firstSprint.startDate.getTime(),
       markerLabel: sorted[0].label || `vel=${sorted[0].velocity}`,
       isFirst: true,
     })
@@ -195,7 +170,7 @@ export function findPhaseChangeMarkers(
       const sprint = result.standard.sprints[i]
       if (sprint.startDate >= phaseDate) {
         markers.push({
-          xLabel: format(sprint.startDate, "M/d"),
+          xTs: sprint.startDate.getTime(),
           markerLabel: sorted[p].label || `vel=${sorted[p].velocity}`,
           isFirst: false,
         })
@@ -254,11 +229,11 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
     ? calculateDelayDays(totalPoints!, completedSprints!, result.standard, sprintDaysNum)
     : null
 
-  // 今日のデータポイントがチャートデータに存在するか確認
+  // 今日がスプリント範囲内かチェック
   const isTodayInSprints = result.standard.sprints.some(
     (s) => today >= s.startDate && today < s.endDate
   )
-  const todayLabel = isTodayInSprints ? format(today, "M/d") : null
+  const todayTs = isTodayInSprints ? today.getTime() : null
 
   // 今日時点の標準シナリオ理想残ポイント
   const idealRemainingRaw = isTodayInSprints
@@ -266,10 +241,15 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
     : null
   const idealRemaining = idealRemainingRaw !== null ? Math.round(idealRemainingRaw) : null
 
-  // デッドラインのデータポイントがチャートデータに存在するか確認
-  const deadlineLabel = deadlineDate && data.some((d) => d.label === format(deadlineDate, "M/d"))
-    ? format(deadlineDate, "M/d")
+  // デッドラインがスプリント範囲内かチェック
+  const deadlineTs = deadlineDate && result.standard.sprints.some(
+    (s) => deadlineDate >= s.startDate && deadlineDate < s.endDate
+  )
+    ? deadlineDate.getTime()
     : null
+
+  // XAxis の ticks: スプリント開始点 + 各スプリント終了日
+  const xTicks = data.map((d) => d.date)
 
   return (
     <Card>
@@ -315,7 +295,12 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
           >
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.5} />
               <XAxis
-                dataKey="label"
+                dataKey="date"
+                type="number"
+                scale="time"
+                domain={["dataMin", "dataMax"]}
+                ticks={xTicks}
+                tickFormatter={(ts: number) => format(new Date(ts), "M/d")}
                 fontSize={11}
                 angle={-35}
                 textAnchor="end"
@@ -341,16 +326,18 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                   fontSize: "12px",
                   ...tooltipStyle,
                 }}
-                labelFormatter={(label, payload) => {
+                labelFormatter={(val, payload) => {
+                  const ts = Number(val)
                   const sprintNum = (payload?.[0]?.payload as ChartDataPoint)?.sprintNum
+                  const label = format(new Date(ts), "M/d")
                   return sprintNum ? `${sprintNum} (${label})` : label
                 }}
               />
               <Legend />
 
-              {todayLabel && (
+              {todayTs !== null && (
                 <ReferenceLine
-                  x={todayLabel}
+                  x={todayTs}
                   stroke={todayLineColor}
                   strokeDasharray="6 3"
                   label={{
@@ -362,9 +349,9 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 />
               )}
 
-              {todayLabel && idealRemaining !== null && (
+              {todayTs !== null && idealRemaining !== null && (
                 <ReferenceDot
-                  x={todayLabel}
+                  x={todayTs}
                   y={idealRemaining}
                   r={6}
                   fill={todayDotFill}
@@ -373,13 +360,13 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
                 />
               )}
 
-              {deadlineLabel && (
+              {deadlineTs !== null && (
                 <ReferenceLine
-                  x={deadlineLabel}
+                  x={deadlineTs}
                   stroke={deadlineLineColor}
                   strokeDasharray="6 3"
                   label={{
-                    value: `DL: ${deadlineLabel}`,
+                    value: `DL: ${format(new Date(deadlineTs), "M/d")}`,
                     position: "top",
                     fontSize: 11,
                     fill: deadlineLineColor,
@@ -389,8 +376,8 @@ export function BurndownChart({ result, velocityPhases, deadline, completedSprin
 
               {phaseMarkers.map((marker, index) => (
                 <ReferenceLine
-                  key={marker.xLabel}
-                  x={marker.xLabel}
+                  key={marker.xTs}
+                  x={marker.xTs}
                   stroke={phaseLineColor}
                   strokeWidth={marker.isFirst ? 1 : 2}
                   strokeDasharray={marker.isFirst ? "4 4" : undefined}

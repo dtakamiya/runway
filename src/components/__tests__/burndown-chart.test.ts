@@ -57,54 +57,29 @@ describe("buildChartData", () => {
     return { highVelocity: scenario, standard: scenario, lowVelocity: scenario }
   }
 
-  it("デッドラインのデータポイントはシナリオ値が null になる", () => {
+  it("スプリント数 + 1 個のデータポイントのみを返す（今日・DL は挿入しない）", () => {
     const result = makeResultWithPoints(sprints)
-    const today = new Date("2025-04-01") // スプリント範囲外
+    const today = new Date("2025-04-14") // S1 の途中
     const deadline = new Date("2025-04-30") // S2 の途中
 
     const data = buildChartData(result, today, deadline)
 
-    const dlPoint = data.find((d) => d.sprintNum === "DL")
-    expect(dlPoint).toBeDefined()
-    expect(dlPoint?.highVelocity).toBeNull()
-    expect(dlPoint?.standard).toBeNull()
-    expect(dlPoint?.lowVelocity).toBeNull()
-    expect(dlPoint?.label).toBe("4/30")
+    // 開始点 + 3スプリント = 4点のみ
+    expect(data).toHaveLength(sprints.length + 1)
+    expect(data.find((d) => d.sprintNum === "今日")).toBeUndefined()
+    expect(data.find((d) => d.sprintNum === "DL")).toBeUndefined()
   })
 
-  it("今日のデータポイントはシナリオ値が null になる", () => {
+  it("各データポイントに date (timestamp) が設定される", () => {
     const result = makeResultWithPoints(sprints)
-    const today = new Date("2025-04-14") // S1 の途中
+    const data = buildChartData(result, new Date("2025-04-01"))
 
-    const data = buildChartData(result, today)
-
-    const todayPoint = data.find((d) => d.sprintNum === "今日")
-    expect(todayPoint).toBeDefined()
-    expect(todayPoint?.highVelocity).toBeNull()
-    expect(todayPoint?.standard).toBeNull()
-    expect(todayPoint?.lowVelocity).toBeNull()
-  })
-
-  it("デッドラインがスプリント範囲外の場合、DL データポイントが追加されない", () => {
-    const result = makeResultWithPoints(sprints)
-    const today = new Date("2025-04-01")
-    const deadline = new Date("2025-06-01") // 全スプリント終了後
-
-    const data = buildChartData(result, today, deadline)
-
-    const dlPoint = data.find((d) => d.sprintNum === "DL")
-    expect(dlPoint).toBeUndefined()
-  })
-
-  it("デッドラインがスプリント終了日と同じラベルの場合、重複挿入されない", () => {
-    const result = makeResultWithPoints(sprints)
-    const today = new Date("2025-04-01")
-    const deadline = new Date("2025-04-21") // S1 の終了日と同じ
-
-    const data = buildChartData(result, today, deadline)
-
-    const count = data.filter((d) => d.label === "4/21").length
-    expect(count).toBe(1)
+    // 開始点は S1 の startDate
+    expect(data[0].date).toBe(new Date("2025-04-07").getTime())
+    // S1 は S1 の endDate
+    expect(data[1].date).toBe(new Date("2025-04-21").getTime())
+    // S2 は S2 の endDate
+    expect(data[2].date).toBe(new Date("2025-05-05").getTime())
   })
 })
 
@@ -130,9 +105,9 @@ describe("findPhaseChangeMarkers", () => {
 
     // フェーズ1（3/20）とフェーズ2（4/3）の両方にマーカーが置かれる
     expect(markers).toHaveLength(2)
-    expect(markers[0].xLabel).toBe("3/20")
+    expect(markers[0].xTs).toBe(new Date("2025-03-20").getTime())
     expect(markers[0].markerLabel).toBe("vel=10")
-    expect(markers[1].xLabel).toBe("4/3")
+    expect(markers[1].xTs).toBe(new Date("2025-04-03").getTime())
     expect(markers[1].markerLabel).toBe("phase2")
   })
 
@@ -147,8 +122,8 @@ describe("findPhaseChangeMarkers", () => {
 
     // フェーズ1は3/20、4/10はS2の途中 → フェーズ2はS3開始日(4/17)にマーカー
     expect(markers).toHaveLength(2)
-    expect(markers[0].xLabel).toBe("3/20")
-    expect(markers[1].xLabel).toBe("4/17")
+    expect(markers[0].xTs).toBe(new Date("2025-03-20").getTime())
+    expect(markers[1].xTs).toBe(new Date("2025-04-17").getTime())
   })
 
   it("フェーズが1つのとき、マーカーは空", () => {
@@ -184,11 +159,11 @@ describe("findPhaseChangeMarkers", () => {
     const markers = findPhaseChangeMarkers(result, phases)
 
     expect(markers).toHaveLength(3)
-    expect(markers[0].xLabel).toBe("3/20")
+    expect(markers[0].xTs).toBe(new Date("2025-03-20").getTime())
     expect(markers[0].markerLabel).toBe("vel=10")
-    expect(markers[1].xLabel).toBe("4/3")
+    expect(markers[1].xTs).toBe(new Date("2025-04-03").getTime())
     expect(markers[1].markerLabel).toBe("vel=20")
-    expect(markers[2].xLabel).toBe("4/17")
+    expect(markers[2].xTs).toBe(new Date("2025-04-17").getTime())
     expect(markers[2].markerLabel).toBe("vel=30")
   })
 })
@@ -247,6 +222,14 @@ describe("buildBaseDataPoints", () => {
     const result = makeResultWithPoints(sprints)
     const data = buildBaseDataPoints(result, new Map())
     expect(data[1].label).toBe("4/21") // S1 終了日
+  })
+
+  it("各データポイントに date (timestamp) が設定される", () => {
+    const result = makeResultWithPoints(sprints)
+    const data = buildBaseDataPoints(result, new Map())
+    expect(data[0].date).toBe(new Date("2025-04-07").getTime()) // 開始点
+    expect(data[1].date).toBe(new Date("2025-04-21").getTime()) // S1 終了日
+    expect(data[2].date).toBe(new Date("2025-05-05").getTime()) // S2 終了日
   })
 })
 
